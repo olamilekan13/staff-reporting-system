@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(composer require:*)",
+      "Bash(composer remove:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(./node_modules/.bin/tailwindcss:*)",
+      "Bash(php artisan vendor:publish:*)",
+      "Bash(php artisan migrate:*)",
+      "Bash(composer show:*)",
+      "Bash(php artisan migrate:status:*)",
+      "Bash(php artisan route:list:*)",
+      "Bash(php artisan:*)",
+      "Bash(mysql:*)",
+      "Bash(php -r:*)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)",
+      "Bash(php -l:*)",
+      "Bash(php -S:*)",
+      "Bash(python:*)",
+      "Bash(/dev/null -exec grep -l \"Setting\" {} ;)",
+      "Bash(npx vite build)",
+      "Bash(taskkill:*)",
+      "Bash(taskkill //F //FI \"IMAGENAME eq php.exe\" //FI \"WINDOWTITLE eq *\")",
+      "Bash(netstat:*)",
+      "Bash(npm run build:*)",
+      "Bash(dir:*)",
+      "Bash(grep:*)",
+      "Bash(ls -la \"c:\\\\laragon\\\\www\\\\staff-reporting-management\\\\database\\\\migrations\"\" | grep -E \"department)",
+      "Bash(announcement \")"
+    ]
+  }
+}
