@@ -18,6 +18,39 @@
     {{-- Vite assets --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    {{-- Dynamic color theme from settings --}}
+    @if(!empty($siteSettings['primary_color_shades']) || !empty($siteSettings['secondary_color_shades']))
+        <style>
+            @layer theme {
+                @if(!empty($siteSettings['primary_color_shades']))
+                    --color-primary-50: {{ $siteSettings['primary_color_shades']['50'] }};
+                    --color-primary-100: {{ $siteSettings['primary_color_shades']['100'] }};
+                    --color-primary-200: {{ $siteSettings['primary_color_shades']['200'] }};
+                    --color-primary-300: {{ $siteSettings['primary_color_shades']['300'] }};
+                    --color-primary-400: {{ $siteSettings['primary_color_shades']['400'] }};
+                    --color-primary-500: {{ $siteSettings['primary_color_shades']['500'] }};
+                    --color-primary-600: {{ $siteSettings['primary_color_shades']['600'] }};
+                    --color-primary-700: {{ $siteSettings['primary_color_shades']['700'] }};
+                    --color-primary-800: {{ $siteSettings['primary_color_shades']['800'] }};
+                    --color-primary-900: {{ $siteSettings['primary_color_shades']['900'] }};
+                @endif
+
+                @if(!empty($siteSettings['secondary_color_shades']))
+                    --color-secondary-50: {{ $siteSettings['secondary_color_shades']['50'] }};
+                    --color-secondary-100: {{ $siteSettings['secondary_color_shades']['100'] }};
+                    --color-secondary-200: {{ $siteSettings['secondary_color_shades']['200'] }};
+                    --color-secondary-300: {{ $siteSettings['secondary_color_shades']['300'] }};
+                    --color-secondary-400: {{ $siteSettings['secondary_color_shades']['400'] }};
+                    --color-secondary-500: {{ $siteSettings['secondary_color_shades']['500'] }};
+                    --color-secondary-600: {{ $siteSettings['secondary_color_shades']['600'] }};
+                    --color-secondary-700: {{ $siteSettings['secondary_color_shades']['700'] }};
+                    --color-secondary-800: {{ $siteSettings['secondary_color_shades']['800'] }};
+                    --color-secondary-900: {{ $siteSettings['secondary_color_shades']['900'] }};
+                @endif
+            }
+        </style>
+    @endif
+
     {{-- Custom CSS from settings --}}
     @if(!empty($siteSettings['custom_css']))
         <style>
