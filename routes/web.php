@@ -19,6 +19,7 @@ Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('login/verify', [LoginController::class, 'verifyKingsChatId'])->name('login.verify');
 Route::post('login', [LoginController::class, 'login']);
 Route::post('logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+Route::get('logout', [LoginController::class, 'logout'])->middleware('auth'); // Fallback for GET requests
 
 // ─── Admin Routes ────────────────────────────────────────────────────
 Route::prefix('admin')
@@ -26,26 +27,34 @@ Route::prefix('admin')
     ->group(function () {
         Route::get('dashboard', [Admin\DashboardController::class, 'index'])->name('admin.dashboard');
 
-        // User import/export routes (must be before resource routes)
-        Route::get('users/import/template', [Admin\UserController::class, 'importTemplate'])->name('admin.users.import.template');
-        Route::post('users/import', [Admin\UserController::class, 'import'])->name('admin.users.import');
-        Route::post('users/import/preview', [Admin\UserController::class, 'importPreview'])->name('admin.users.import.preview');
-        Route::get('users/export', [Admin\UserController::class, 'export'])->name('admin.users.export');
-        Route::post('users/{user}/toggle-activation', [Admin\UserController::class, 'toggleActivation'])->name('admin.users.toggle-activation');
-        Route::resource('users', Admin\UserController::class)->names('admin.users');
+        // Routes accessible to all admin roles (including Head of Operations)
         Route::resource('departments', Admin\DepartmentController::class)->names('admin.departments');
         Route::post('reports/{report}/review', [Admin\ReportController::class, 'review'])->name('admin.reports.review');
         Route::resource('reports', Admin\ReportController::class)->names('admin.reports');
         Route::resource('announcements', Admin\AnnouncementController::class)->names('admin.announcements');
 
-        Route::get('proposals', [Admin\ProposalController::class, 'index'])->name('admin.proposals.index');
-        Route::get('proposals/{proposal}', [Admin\ProposalController::class, 'show'])->name('admin.proposals.show');
-        Route::post('proposals/{proposal}/review', [Admin\ProposalController::class, 'review'])->name('admin.proposals.review');
+        // Routes restricted to super_admin and admin only (NOT Head of Operations)
+        Route::middleware('role:super_admin,admin')->group(function () {
+            // User management routes
+            Route::get('users/import/template', [Admin\UserController::class, 'importTemplate'])->name('admin.users.import.template');
+            Route::post('users/import', [Admin\UserController::class, 'import'])->name('admin.users.import');
+            Route::post('users/import/preview', [Admin\UserController::class, 'importPreview'])->name('admin.users.import.preview');
+            Route::get('users/export', [Admin\UserController::class, 'export'])->name('admin.users.export');
+            Route::post('users/{user}/toggle-activation', [Admin\UserController::class, 'toggleActivation'])->name('admin.users.toggle-activation');
+            Route::resource('users', Admin\UserController::class)->names('admin.users');
 
-        Route::get('settings', [Admin\SettingController::class, 'index'])->name('admin.settings.index');
-        Route::put('settings', [Admin\SettingController::class, 'update'])->name('admin.settings.update');
+            // Proposal routes
+            Route::get('proposals', [Admin\ProposalController::class, 'index'])->name('admin.proposals.index');
+            Route::get('proposals/{proposal}', [Admin\ProposalController::class, 'show'])->name('admin.proposals.show');
+            Route::post('proposals/{proposal}/review', [Admin\ProposalController::class, 'review'])->name('admin.proposals.review');
 
-        Route::get('activity-logs', [Admin\ActivityLogController::class, 'index'])->name('admin.activity-logs.index');
+            // Settings routes
+            Route::get('settings', [Admin\SettingController::class, 'index'])->name('admin.settings.index');
+            Route::put('settings', [Admin\SettingController::class, 'update'])->name('admin.settings.update');
+
+            // Activity logs
+            Route::get('activity-logs', [Admin\ActivityLogController::class, 'index'])->name('admin.activity-logs.index');
+        });
     });
 
 // ─── HOD Routes ──────────────────────────────────────────────────────

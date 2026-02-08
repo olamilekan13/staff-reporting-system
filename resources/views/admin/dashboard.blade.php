@@ -6,14 +6,16 @@
 @section('content')
     {{-- Stats row --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <x-stat-card title="Total Users" :value="$stats['total_users']">
-            <x-slot:icon>
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                </svg>
-            </x-slot:icon>
-            <x-slot:trend>{{ $stats['active_users'] }} active</x-slot:trend>
-        </x-stat-card>
+        @if(!$isHeadOfOperations)
+            <x-stat-card title="Total Users" :value="$stats['total_users']">
+                <x-slot:icon>
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                    </svg>
+                </x-slot:icon>
+                <x-slot:trend>{{ $stats['active_users'] }} active</x-slot:trend>
+            </x-stat-card>
+        @endif
 
         <x-stat-card title="Total Reports" :value="$stats['total_reports']">
             <x-slot:icon>
@@ -24,13 +26,23 @@
             <x-slot:trend>{{ $stats['pending_reports'] }} pending</x-slot:trend>
         </x-stat-card>
 
-        <x-stat-card title="Pending Proposals" :value="$stats['pending_proposals']">
-            <x-slot:icon>
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
-                </svg>
-            </x-slot:icon>
-        </x-stat-card>
+        @if(!$isHeadOfOperations)
+            <x-stat-card title="Pending Proposals" :value="$stats['pending_proposals']">
+                <x-slot:icon>
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+        @else
+            <x-stat-card title="Pending Reports" :value="$stats['pending_reports']">
+                <x-slot:icon>
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                </x-slot:icon>
+            </x-stat-card>
+        @endif
 
         <x-stat-card title="Active Announcements" :value="$stats['active_announcements']">
             <x-slot:icon>
@@ -95,62 +107,106 @@
             </x-card>
         </div>
 
-        {{-- Recent Activity (1/3 width) --}}
-        <div>
-            <x-card title="Recent Activity">
-                <x-slot:actions>
-                    <a href="{{ route('admin.activity-logs.index') }}" class="text-sm text-primary-600 hover:text-primary-700 font-medium">View all</a>
-                </x-slot:actions>
+        {{-- Recent Activity (1/3 width) - Only for Admin --}}
+        @if(!$isHeadOfOperations)
+            <div>
+                <x-card title="Recent Activity">
+                    <x-slot:actions>
+                        <a href="{{ route('admin.activity-logs.index') }}" class="text-sm text-primary-600 hover:text-primary-700 font-medium">View all</a>
+                    </x-slot:actions>
 
-                @if($recentActivity->isEmpty())
-                    <x-empty-state title="No activity yet" description="Activity logs will appear here." />
-                @else
-                    <div class="-mx-6 -my-4">
-                        <ul class="divide-y divide-gray-100">
-                            @foreach($recentActivity as $log)
-                                <li class="px-6 py-3 flex items-start gap-3">
-                                    {{-- Action color dot --}}
-                                    @php
-                                        $dotColor = match($log->getActionColor()) {
-                                            'green' => 'bg-green-500',
-                                            'blue' => 'bg-blue-500',
-                                            'yellow' => 'bg-yellow-500',
-                                            'red' => 'bg-red-500',
-                                            'purple' => 'bg-purple-500',
-                                            'indigo' => 'bg-indigo-500',
-                                            default => 'bg-gray-400',
-                                        };
-                                    @endphp
-                                    <div class="w-2 h-2 rounded-full {{ $dotColor }} mt-1.5 shrink-0"></div>
+                    @if($recentActivity->isEmpty())
+                        <x-empty-state title="No activity yet" description="Activity logs will appear here." />
+                    @else
+                        <div class="-mx-6 -my-4">
+                            <ul class="divide-y divide-gray-100">
+                                @foreach($recentActivity as $log)
+                                    <li class="px-6 py-3 flex items-start gap-3">
+                                        {{-- Action color dot --}}
+                                        @php
+                                            $dotColor = match($log->getActionColor()) {
+                                                'green' => 'bg-green-500',
+                                                'blue' => 'bg-blue-500',
+                                                'yellow' => 'bg-yellow-500',
+                                                'red' => 'bg-red-500',
+                                                'purple' => 'bg-purple-500',
+                                                'indigo' => 'bg-indigo-500',
+                                                default => 'bg-gray-400',
+                                            };
+                                        @endphp
+                                        <div class="w-2 h-2 rounded-full {{ $dotColor }} mt-1.5 shrink-0"></div>
 
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm text-gray-900">
-                                            <span class="font-medium">{{ $log->user?->full_name ?? 'System' }}</span>
-                                            {{ strtolower($log->getActionLabel()) }}
-                                            @if($log->getModelName())
-                                                <span class="text-gray-500">{{ $log->getModelName() }}</span>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm text-gray-900">
+                                                <span class="font-medium">{{ $log->user?->full_name ?? 'System' }}</span>
+                                                {{ strtolower($log->getActionLabel()) }}
+                                                @if($log->getModelName())
+                                                    <span class="text-gray-500">{{ $log->getModelName() }}</span>
+                                                @endif
+                                            </p>
+                                            <p class="text-xs text-gray-400 mt-0.5">{{ $log->created_at->diffForHumans() }}</p>
+                                        </div>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                </x-card>
+            </div>
+        @else
+            {{-- Recent Notifications (1/3 width) - For Head of Operations --}}
+            <div>
+                <x-card title="Recent Notifications">
+                    <x-slot:actions>
+                        <a href="{{ route('notifications.index') }}" class="text-sm text-primary-600 hover:text-primary-700 font-medium">View all</a>
+                    </x-slot:actions>
+
+                    @if($recentNotifications->isEmpty())
+                        <x-empty-state title="No notifications" description="You're all caught up!" />
+                    @else
+                        <div class="-mx-6 -my-4">
+                            <ul class="divide-y divide-gray-100">
+                                @foreach($recentNotifications as $notification)
+                                    <li class="px-6 py-3">
+                                        <a href="{{ route('notifications.view', $notification) }}" class="flex items-start gap-3 hover:bg-gray-50 -mx-6 -my-3 px-6 py-3 transition-colors">
+                                            {{-- Unread indicator --}}
+                                            @if(!$notification->read_at)
+                                                <div class="w-2 h-2 rounded-full bg-primary-500 mt-1.5 shrink-0"></div>
+                                            @else
+                                                <div class="w-2 h-2 mt-1.5 shrink-0"></div>
                                             @endif
-                                        </p>
-                                        <p class="text-xs text-gray-400 mt-0.5">{{ $log->created_at->diffForHumans() }}</p>
-                                    </div>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-            </x-card>
-        </div>
+
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm {{ $notification->read_at ? 'text-gray-600' : 'text-gray-900 font-medium' }}">
+                                                    {{ $notification->data['title'] ?? 'New notification' }}
+                                                </p>
+                                                @if(isset($notification->data['message']))
+                                                    <p class="text-xs text-gray-500 mt-0.5">{{ Str::limit($notification->data['message'], 60) }}</p>
+                                                @endif
+                                                <p class="text-xs text-gray-400 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                                            </div>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                </x-card>
+            </div>
+        @endif
     </div>
 
     {{-- Quick Actions --}}
     <x-card title="Quick Actions">
         <div class="flex flex-wrap gap-3">
-            <x-button variant="primary" :href="route('admin.users.create')">
-                <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
-                </svg>
-                Add User
-            </x-button>
+            @if(!$isHeadOfOperations)
+                <x-button variant="primary" :href="route('admin.users.create')">
+                    <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                    </svg>
+                    Add User
+                </x-button>
+            @endif
 
             <x-button variant="primary" :href="route('admin.announcements.create')">
                 <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

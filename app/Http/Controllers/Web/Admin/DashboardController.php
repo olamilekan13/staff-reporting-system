@@ -13,6 +13,9 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        $user = auth()->user();
+        $isHeadOfOperations = $user->hasRole('head_of_operations');
+
         $stats = [
             'total_users' => User::count(),
             'active_users' => User::where('is_active', true)->count(),
@@ -27,11 +30,24 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
-        $recentActivity = ActivityLog::with('user')
-            ->latest()
-            ->take(10)
-            ->get();
+        // Only fetch activity logs for non-HOO users
+        $recentActivity = null;
+        if (!$isHeadOfOperations) {
+            $recentActivity = ActivityLog::with('user')
+                ->latest()
+                ->take(10)
+                ->get();
+        }
 
-        return view('admin.dashboard', compact('stats', 'recentReports', 'recentActivity'));
+        // Fetch notifications for HOO users
+        $recentNotifications = null;
+        if ($isHeadOfOperations) {
+            $recentNotifications = $user->notifications()
+                ->latest()
+                ->take(10)
+                ->get();
+        }
+
+        return view('admin.dashboard', compact('stats', 'recentReports', 'recentActivity', 'recentNotifications', 'isHeadOfOperations'));
     }
 }
