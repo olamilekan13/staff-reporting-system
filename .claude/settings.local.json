@@ -28,7 +28,11 @@
       "Bash(dir:*)",
       "Bash(grep:*)",
       "Bash(ls -la \"c:\\\\laragon\\\\www\\\\staff-reporting-management\\\\database\\\\migrations\"\" | grep -E \"department)",
-      "Bash(announcement \")"
+      "Bash(announcement \")",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd AJAX file upload with progress tracking and toast notifications\n\n- Add AJAX upload handling for reports and proposals with large files\n- Display upload progress indicator for better user experience\n- Add toast notifications for success/error feedback\n- Return JSON responses for AJAX requests in controllers\n- Support video file uploads \\(mp4, mov, avi\\) for proposals\n- Make proposals.description column nullable to match validation\n- Add loading states to submit buttons during upload\n- Handle validation errors with toast messages\n\nTechnical changes:\n- Updated ReportController and ProposalController store/update methods\n- Added AJAX detection and JSON response handling\n- Enhanced JavaScript in create/edit forms for reports and proposals\n- Created migration to make proposals.description nullable\n- Added video MIME types to proposal validation rules\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git add:*)",
+      "Bash(git restore:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
