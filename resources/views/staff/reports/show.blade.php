@@ -132,17 +132,28 @@
                 <h3 class="text-base font-semibold text-gray-900">Comments (<span x-text="comments.length">{{ $report->comments->count() }}</span>)</h3>
             </div>
 
-            {{-- Add comment form --}}
-            <form @submit.prevent="addComment" class="mb-6">
-                <textarea x-model="newComment" rows="3" placeholder="Write a comment..."
-                    class="input w-full" required></textarea>
-                <div class="flex justify-end mt-2">
-                    <x-button type="submit" variant="primary" size="sm" x-bind:disabled="submitting">
-                        <span x-show="!submitting">Post Comment</span>
-                        <span x-show="submitting">Posting...</span>
-                    </x-button>
+            {{-- Add comment form - Staff cannot create comments --}}
+            @can('create', [App\Models\Comment::class, $report])
+                <form @submit.prevent="addComment" class="mb-6">
+                    <textarea x-model="newComment" rows="3" placeholder="Write a comment..."
+                        class="input w-full" required></textarea>
+                    <div class="flex justify-end mt-2">
+                        <x-button type="submit" variant="primary" size="sm" x-bind:disabled="submitting">
+                            <span x-show="!submitting">Post Comment</span>
+                            <span x-show="submitting">Posting...</span>
+                        </x-button>
+                    </div>
+                </form>
+            @else
+                <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <p class="text-sm text-gray-600">
+                        <svg class="w-5 h-5 inline-block mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                        </svg>
+                        Only administrators and department heads can add comments.
+                    </p>
                 </div>
-            </form>
+            @endcan
 
             {{-- Comments list --}}
             <div class="space-y-4">

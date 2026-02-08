@@ -61,7 +61,7 @@
     @else
         <x-data-table :headers="['title' => 'Title', 'category' => 'Category', 'status' => 'Status', 'date' => 'Date', 'actions' => '']">
             @foreach($reports as $report)
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='{{ route('staff.reports.show', $report) }}'">
                     <td class="px-6 py-3">
                         <div class="flex items-center gap-3">
                             @if($report->file_name)
@@ -80,9 +80,9 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                                 </svg>
                             @endif
-                            <a href="{{ route('staff.reports.show', $report) }}" class="font-medium text-gray-900 hover:text-primary-600">
+                            <span class="font-medium text-gray-900">
                                 {{ Str::limit($report->title, 40) }}
-                            </a>
+                            </span>
                         </div>
                     </td>
                     <td class="px-6 py-3 text-gray-500 capitalize">{{ $report->report_category }}</td>
@@ -98,7 +98,7 @@
                         <x-badge :type="$badgeType">{{ ucfirst($report->status) }}</x-badge>
                     </td>
                     <td class="px-6 py-3 text-gray-500 whitespace-nowrap">{{ $report->created_at->format('M d, Y') }}</td>
-                    <td class="px-6 py-3">
+                    <td class="px-6 py-3" onclick="event.stopPropagation()">
                         <x-dropdown>
                             <x-slot:trigger>
                                 <button class="text-gray-400 hover:text-gray-600">

@@ -20,10 +20,16 @@ class CommentPolicy
 
     /**
      * Determine if the user can create a comment.
-     * User must be able to view the parent resource.
+     * Staff cannot initiate comments - only admins, head of operations, and HODs can.
      */
     public function create(User $user, $commentable): bool
     {
+        // Staff cannot create comments
+        if ($user->hasRole('staff') && !$user->hasRole(['super_admin', 'admin', 'head_of_operations', 'hod'])) {
+            return false;
+        }
+
+        // Admin, Head of Operations, and HOD can comment if they can access the resource
         return $this->canAccessCommentable($user, $commentable);
     }
 

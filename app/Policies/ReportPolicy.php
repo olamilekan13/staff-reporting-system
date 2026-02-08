@@ -69,15 +69,22 @@ class ReportPolicy
     }
 
     /**
-     * Owner or admin can delete.
+     * Only super_admin can delete submitted reports.
+     * Staff can only delete their own draft reports.
      */
     public function delete(User $user, Report $report): bool
     {
-        if ($report->user_id === $user->id) {
+        // Only super_admin can delete any report
+        if ($user->hasRole('super_admin')) {
             return true;
         }
 
-        return $user->isAdmin();
+        // Staff can only delete their own draft reports
+        if ($report->user_id === $user->id && $report->status === Report::STATUS_DRAFT) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

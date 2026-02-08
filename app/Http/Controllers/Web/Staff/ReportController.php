@@ -52,6 +52,13 @@ class ReportController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             return back()->withErrors($validator)->withInput();
         }
 
@@ -73,12 +80,21 @@ class ReportController extends Controller
 
         if ($request->input('action') === 'submit') {
             $this->reportService->submitReport($report);
-            return redirect()->route('staff.reports.show', $report)
-                ->with('success', 'Report submitted successfully.');
+            $message = 'Report submitted successfully.';
+        } else {
+            $message = 'Report saved as draft.';
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'redirect' => route('staff.reports.show', $report)
+            ]);
         }
 
         return redirect()->route('staff.reports.show', $report)
-            ->with('success', 'Report saved as draft.');
+            ->with('success', $message);
     }
 
     public function show(Report $report)
@@ -111,6 +127,13 @@ class ReportController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             return back()->withErrors($validator)->withInput();
         }
 
@@ -128,12 +151,21 @@ class ReportController extends Controller
 
         if ($request->input('action') === 'submit') {
             $this->reportService->submitReport($report->fresh());
-            return redirect()->route('staff.reports.show', $report)
-                ->with('success', 'Report submitted successfully.');
+            $message = 'Report submitted successfully.';
+        } else {
+            $message = 'Report updated successfully.';
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'redirect' => route('staff.reports.show', $report)
+            ]);
         }
 
         return redirect()->route('staff.reports.show', $report)
-            ->with('success', 'Report updated successfully.');
+            ->with('success', $message);
     }
 
     public function destroy(Report $report)

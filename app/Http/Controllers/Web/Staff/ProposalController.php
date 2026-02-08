@@ -43,10 +43,17 @@ class ProposalController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:10000',
-            'file' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif',
+            'file' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,mov,avi',
         ]);
 
         if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             return back()->withErrors($validator)->withInput();
         }
 
@@ -61,6 +68,14 @@ class ProposalController extends Controller
             $data,
             $request->file('file')
         );
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Proposal submitted successfully.',
+                'redirect' => route('staff.proposals.show', $proposal)
+            ]);
+        }
 
         return redirect()->route('staff.proposals.show', $proposal)
             ->with('success', 'Proposal submitted successfully.');
@@ -91,10 +106,17 @@ class ProposalController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:10000',
-            'file' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif',
+            'file' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,mov,avi',
         ]);
 
         if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             return back()->withErrors($validator)->withInput();
         }
 
@@ -109,6 +131,14 @@ class ProposalController extends Controller
             $data,
             $request->file('file')
         );
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Proposal updated successfully.',
+                'redirect' => route('staff.proposals.show', $proposal)
+            ]);
+        }
 
         return redirect()->route('staff.proposals.show', $proposal)
             ->with('success', 'Proposal updated successfully.');
