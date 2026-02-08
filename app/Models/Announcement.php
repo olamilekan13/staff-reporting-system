@@ -5,11 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Announcement extends Model
 {
     use HasFactory, SoftDeletes;
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // When an announcement is being deleted, delete all related notifications
+        static::deleting(function ($announcement) {
+            // Delete all notifications related to this announcement
+            $announcement->notifications()->delete();
+        });
+    }
 
     protected $fillable = [
         'title',
@@ -59,6 +74,11 @@ class Announcement extends Model
     {
         return $this->belongsToMany(Department::class, 'announcement_department')
             ->withTimestamps();
+    }
+
+    public function notifications(): MorphMany
+    {
+        return $this->morphMany(Notification::class, 'notifiable');
     }
 
     // Scopes
