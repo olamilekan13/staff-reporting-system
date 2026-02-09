@@ -105,7 +105,12 @@ class AppServiceProvider extends ServiceProvider
             config()->set('mail.mailers.smtp.port', (int) SiteSetting::get('smtp_port', 587));
             config()->set('mail.mailers.smtp.username', SiteSetting::get('smtp_username'));
             config()->set('mail.mailers.smtp.password', $password ? decrypt($password) : null);
-            config()->set('mail.mailers.smtp.scheme', SiteSetting::get('smtp_encryption') ?: null);
+            $encryption = SiteSetting::get('smtp_encryption');
+            $scheme = match ($encryption) {
+                'tls', 'ssl' => 'smtps',
+                default => null,
+            };
+            config()->set('mail.mailers.smtp.scheme', $scheme);
         }
 
         $fromAddress = SiteSetting::get('mail_from_address');

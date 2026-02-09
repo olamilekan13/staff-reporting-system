@@ -325,9 +325,9 @@
                                         $currentEncryption = old('smtp_encryption', $settings['email']['smtp_encryption']['value'] ?? 'tls');
                                         if ($currentEncryption === '' || $currentEncryption === null) $currentEncryption = 'none';
                                     @endphp
-                                    <option value="tls" {{ $currentEncryption === 'tls' ? 'selected' : '' }}>TLS (Recommended)</option>
-                                    <option value="ssl" {{ $currentEncryption === 'ssl' ? 'selected' : '' }}>SSL</option>
-                                    <option value="none" {{ $currentEncryption === 'none' ? 'selected' : '' }}>None</option>
+                                    <option value="tls" {{ $currentEncryption === 'tls' ? 'selected' : '' }}>TLS/STARTTLS - Port 587 (Recommended)</option>
+                                    <option value="ssl" {{ $currentEncryption === 'ssl' ? 'selected' : '' }}>SSL/TLS - Port 465</option>
+                                    <option value="none" {{ $currentEncryption === 'none' ? 'selected' : '' }}>None - Port 25</option>
                                 </select>
                             </div>
                         </div>
