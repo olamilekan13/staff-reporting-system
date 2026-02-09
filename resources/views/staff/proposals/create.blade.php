@@ -4,8 +4,7 @@
 @section('page-title', 'Create Proposal')
 
 @section('content')
-    <div class="max-w-3xl">
-        {{-- Back link --}}
+    {{-- Back link --}}
         <a href="{{ route('staff.proposals.index') }}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
@@ -47,7 +46,6 @@
                 </div>
             </form>
         </x-card>
-    </div>
 @endsection
 
 @push('styles')

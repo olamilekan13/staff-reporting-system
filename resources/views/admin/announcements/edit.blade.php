@@ -4,7 +4,6 @@
 @section('page-title', 'Edit Announcement')
 
 @section('content')
-    <div class="max-w-3xl">
         {{-- Back link --}}
         <a href="{{ route('admin.announcements.index') }}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -121,7 +120,6 @@
                 </div>
             </form>
         </x-card>
-    </div>
 @endsection
 
 @push('scripts')

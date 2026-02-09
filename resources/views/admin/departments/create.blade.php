@@ -4,7 +4,6 @@
 @section('page-title', 'Create Department')
 
 @section('content')
-    <div class="max-w-3xl">
         <form method="POST" action="{{ route('admin.departments.store') }}">
             @csrf
 
@@ -86,5 +85,4 @@
                 </div>
             </x-card>
         </form>
-    </div>
 @endsection

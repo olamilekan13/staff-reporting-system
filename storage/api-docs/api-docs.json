@@ -11,7 +11,7 @@
     },
     "servers": [
         {
-            "url": "http://127.0.0.1:8001",
+            "url": "http://127.0.0.1:8000",
             "description": "API Server"
         }
     ],
@@ -2320,6 +2320,161 @@
                     },
                     "404": {
                         "description": "Notification not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/notifications/preferences": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get notification preferences",
+                "description": "Get the authenticated user's notification preferences",
+                "operationId": "getNotificationPreferences",
+                "responses": {
+                    "200": {
+                        "description": "Preferences retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Notification preferences retrieved successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/NotificationPreference"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Update notification preferences",
+                "description": "Update the authenticated user's notification preferences",
+                "operationId": "updateNotificationPreferences",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email_enabled": {
+                                        "description": "Enable or disable email notifications",
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "notification_types": {
+                                        "description": "Enable or disable specific notification types",
+                                        "properties": {
+                                            "comment": {
+                                                "type": "boolean",
+                                                "example": true
+                                            },
+                                            "report_status": {
+                                                "type": "boolean",
+                                                "example": true
+                                            },
+                                            "proposal_status": {
+                                                "type": "boolean",
+                                                "example": false
+                                            },
+                                            "announcement": {
+                                                "type": "boolean",
+                                                "example": true
+                                            },
+                                            "system": {
+                                                "type": "boolean",
+                                                "example": true
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Preferences updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Notification preferences updated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/NotificationPreference"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "email_enabled": [
+                                                    "The email enabled field must be a boolean."
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -5782,6 +5937,60 @@
                     "description": {
                         "type": "string",
                         "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "NotificationPreference": {
+                "title": "Notification Preference",
+                "description": "User notification preference settings",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "email_enabled": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "notification_types": {
+                        "properties": {
+                            "comment": {
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "report_status": {
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "proposal_status": {
+                                "type": "boolean",
+                                "example": false
+                            },
+                            "announcement": {
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "system": {
+                                "type": "boolean",
+                                "example": true
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-02-08T14:30:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-02-08T14:30:00Z"
                     }
                 },
                 "type": "object"

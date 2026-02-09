@@ -10,10 +10,13 @@ use App\Models\Proposal;
 use App\Models\Report;
 use App\Models\SiteSetting;
 use App\Models\User;
+use App\Models\UserNotificationPreference;
+use App\Observers\UserObserver;
 use App\Policies\AnnouncementPolicy;
 use App\Policies\CommentPolicy;
 use App\Policies\DepartmentPolicy;
 use App\Policies\NotificationPolicy;
+use App\Policies\NotificationPreferencePolicy;
 use App\Policies\ProposalPolicy;
 use App\Policies\ReportPolicy;
 use App\Policies\SettingPolicy;
@@ -43,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureRateLimiting();
         $this->configurePolicies();
+        $this->registerObservers();
 
         View::composer('layouts.app', \App\View\Composers\AppLayoutComposer::class);
 
@@ -62,9 +66,18 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Announcement::class, AnnouncementPolicy::class);
         Gate::policy(Proposal::class, ProposalPolicy::class);
         Gate::policy(Notification::class, NotificationPolicy::class);
+        Gate::policy(UserNotificationPreference::class, NotificationPreferencePolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Department::class, DepartmentPolicy::class);
         Gate::policy(SiteSetting::class, SettingPolicy::class);
+    }
+
+    /**
+     * Register model observers.
+     */
+    protected function registerObservers(): void
+    {
+        User::observe(UserObserver::class);
     }
 
     /**

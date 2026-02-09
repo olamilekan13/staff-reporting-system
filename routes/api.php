@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\DepartmentController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\NotificationController;
+use App\Http\Controllers\Api\V1\NotificationPreferenceController;
 use App\Http\Controllers\Api\V1\ProposalController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\SettingController;
@@ -101,6 +102,10 @@ Route::prefix('v1')->name('api.')->group(function () {
             Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
             Route::post('/{notification}/read', [NotificationController::class, 'markAsRead']);
             Route::delete('/{notification}', [NotificationController::class, 'destroy']);
+
+            // Notification Preferences
+            Route::get('/preferences', [NotificationPreferenceController::class, 'show']);
+            Route::put('/preferences', [NotificationPreferenceController::class, 'update']);
         });
     });
 });

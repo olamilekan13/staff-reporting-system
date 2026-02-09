@@ -82,6 +82,11 @@ class NotificationService
             return;
         }
 
+        // Check if user wants comment notifications
+        if (!$this->isNotificationTypeEnabled($owner, Notification::TYPE_COMMENT)) {
+            return;
+        }
+
         $this->createCommentNotification($comment, $owner);
 
         if ($comment->parent_id) {
@@ -100,13 +105,18 @@ class NotificationService
             return;
         }
 
+        // Check if user wants report_status notifications
+        if (!$this->isNotificationTypeEnabled($owner, Notification::TYPE_REPORT_STATUS)) {
+            return;
+        }
+
         $this->createReportStatusNotification($report);
 
-        if ($this->isEmailEnabled() && $owner->email) {
+        if ($this->isEmailEnabled($owner) && $owner->email) {
             $this->sendEmail($owner, new ReportStatusChangedMail($report));
         }
 
-        if ($this->isKingsChatEnabled()) {
+        if ($this->isKingsChatEnabled($owner)) {
             $message = "Your report \"{$report->title}\" status has been updated to: {$report->status}";
             $this->sendKingsChat($owner, $message);
         }
@@ -123,13 +133,18 @@ class NotificationService
             return;
         }
 
+        // Check if user wants proposal_status notifications
+        if (!$this->isNotificationTypeEnabled($owner, Notification::TYPE_PROPOSAL_STATUS)) {
+            return;
+        }
+
         $this->createProposalStatusNotification($proposal);
 
-        if ($this->isEmailEnabled() && $owner->email) {
+        if ($this->isEmailEnabled($owner) && $owner->email) {
             $this->sendEmail($owner, new ProposalStatusChangedMail($proposal));
         }
 
-        if ($this->isKingsChatEnabled()) {
+        if ($this->isKingsChatEnabled($owner)) {
             $status = str_replace('_', ' ', $proposal->status);
             $message = "Your proposal \"{$proposal->title}\" status has been updated to: {$status}";
             $this->sendKingsChat($owner, $message);
@@ -144,13 +159,18 @@ class NotificationService
         $recipients = $recipients->filter(fn ($user) => $user->id !== $announcement->created_by);
 
         foreach ($recipients as $recipient) {
+            // Check if user wants announcement notifications
+            if (!$this->isNotificationTypeEnabled($recipient, Notification::TYPE_ANNOUNCEMENT)) {
+                continue;
+            }
+
             $this->createAnnouncementNotification($announcement, $recipient);
 
-            if ($this->isEmailEnabled() && $recipient->email) {
+            if ($this->isEmailEnabled($recipient) && $recipient->email) {
                 $this->sendEmail($recipient, new NewAnnouncementMail($announcement, $recipient));
             }
 
-            if ($this->isKingsChatEnabled()) {
+            if ($this->isKingsChatEnabled($recipient)) {
                 $priority = $announcement->priority === Announcement::PRIORITY_URGENT ? '[URGENT] ' : '';
                 $message = "{$priority}New Announcement: {$announcement->title}";
                 $this->sendKingsChat($recipient, $message);
@@ -199,33 +219,67 @@ class NotificationService
     }
 
     /**
-     * Send KingsChat notification (placeholder for future implementation).
+     * Send KingsChat notification.
+     *
+     * DEFERRED: KingsChat integration postponed pending server-side API availability.
+     * Current decision: Focus on email notifications only.
+     *
+     * Future implementation options:
+     * - KingsChat server-side API (if/when released)
+     * - Firebase Cloud Messaging for mobile push
+     * - Alternative messaging platforms (Slack, WhatsApp Business, etc.)
+     *
+     * @param User $user
+     * @param string $message
+     * @return void
      */
     public function sendKingsChat(User $user, string $message): void
     {
-        if (!$user->kingschat_id) {
-            Log::warning("Cannot send KingsChat notification to user {$user->id}: no KingsChat ID");
-            return;
+        // Integration deferred - method kept for future implementation
+        return;
+    }
+
+    /**
+     * Check if email notifications are enabled for a user.
+     */
+    private function isEmailEnabled(User $user): bool
+    {
+        // Check global site setting first
+        if (!SiteSetting::get('enable_email_notifications', true)) {
+            return false;
         }
 
-        // TODO: Implement KingsChat API integration when API details are available
-        Log::info("KingsChat notification placeholder for user {$user->kingschat_id}: {$message}");
+        // Check user preference
+        $preferences = $user->notificationPreferences;
+        if (!$preferences || !$preferences->email_enabled) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
-     * Check if email notifications are enabled.
+     * Check if KingsChat notifications are enabled for a user.
      */
-    private function isEmailEnabled(): bool
+    private function isKingsChatEnabled(User $user): bool
     {
-        return (bool) SiteSetting::get('enable_email_notifications', true);
+        // KingsChat integration deferred - return false for now
+        // Future: Implement when server-side API becomes available
+        return false;
     }
 
     /**
-     * Check if KingsChat notifications are enabled.
+     * Check if a specific notification type is enabled for a user.
      */
-    private function isKingsChatEnabled(): bool
+    private function isNotificationTypeEnabled(User $user, string $type): bool
     {
-        return (bool) SiteSetting::get('enable_kingschat_notifications', false);
+        $preferences = $user->notificationPreferences;
+
+        if (!$preferences) {
+            return true; // Default to enabled if no preferences set
+        }
+
+        return $preferences->isTypeEnabled($type);
     }
 
     /**
@@ -249,11 +303,11 @@ class NotificationService
             'notifiable_id' => $comment->id,
         ]);
 
-        if ($this->isEmailEnabled() && $recipient->email) {
+        if ($this->isEmailEnabled($recipient) && $recipient->email) {
             $this->sendEmail($recipient, new NewCommentMail($comment, $recipient));
         }
 
-        if ($this->isKingsChatEnabled()) {
+        if ($this->isKingsChatEnabled($recipient)) {
             $message = "{$comment->user->full_name} commented on your {$type}: \"{$commentable->title}\"";
             $this->sendKingsChat($recipient, $message);
         }
@@ -301,11 +355,11 @@ class NotificationService
             'notifiable_id' => $comment->id,
         ]);
 
-        if ($this->isEmailEnabled() && $parentAuthor->email) {
+        if ($this->isEmailEnabled($parentAuthor) && $parentAuthor->email) {
             $this->sendEmail($parentAuthor, new NewCommentMail($comment, $parentAuthor));
         }
 
-        if ($this->isKingsChatEnabled()) {
+        if ($this->isKingsChatEnabled($parentAuthor)) {
             $message = "{$comment->user->full_name} replied to your comment on \"{$commentable->title}\"";
             $this->sendKingsChat($parentAuthor, $message);
         }

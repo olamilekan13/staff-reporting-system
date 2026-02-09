@@ -59,6 +59,22 @@
     @endif
 
     @stack('styles')
+
+    {{-- KingsChat SDK --}}
+    @if(config('services.kingschat.app_id'))
+        <script src="https://cdn.kingsch.at/sdk/web/v1/kingschat-sdk.js" defer></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.KingsChatSDK) {
+                    KingsChatSDK.init({
+                        appId: '{{ config('services.kingschat.app_id') }}',
+                        onReady: () => console.log('KingsChat SDK initialized'),
+                        onError: (error) => console.error('KingsChat SDK error:', error)
+                    });
+                }
+            });
+        </script>
+    @endif
 </head>
 <body x-data="appLayout" class="font-sans bg-gray-50 antialiased">
 

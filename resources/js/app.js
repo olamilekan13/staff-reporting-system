@@ -55,6 +55,88 @@ Alpine.data('toastNotification', () => ({
     },
 }));
 
+// Share to KingsChat component
+Alpine.data('shareToKingsChat', () => ({
+    sharing: false,
+
+    async share(title, url, type) {
+        // Check if KingsChat SDK is loaded
+        if (!window.KingsChatSDK) {
+            this.$dispatch('toast', {
+                type: 'error',
+                title: 'KingsChat not available',
+                message: 'Please ensure KingsChat is installed and you are logged in.'
+            });
+            return;
+        }
+
+        this.sharing = true;
+
+        try {
+            // Format message based on type
+            const emoji = this.getTypeEmoji(type);
+            const message = `${emoji} ${title}\n\nView: ${url}`;
+
+            // Call KingsChat SDK share method
+            await window.KingsChatSDK.share({
+                type: 'text',
+                message: message,
+                url: url
+            });
+
+            this.$dispatch('toast', {
+                type: 'success',
+                title: 'Shared successfully!',
+                message: 'Message sent via KingsChat'
+            });
+        } catch (error) {
+            console.error('KingsChat share error:', error);
+
+            // Fallback: Copy to clipboard
+            this.copyToClipboard(title, url, type);
+        } finally {
+            this.sharing = false;
+        }
+    },
+
+    getTypeEmoji(type) {
+        const emojis = {
+            'report': '📊',
+            'proposal': '📄',
+            'comment': '💬',
+            'announcement': '📢'
+        };
+        return emojis[type] || '📎';
+    },
+
+    copyToClipboard(title, url, type) {
+        const emoji = this.getTypeEmoji(type);
+        const message = `${emoji} ${title}\n\nView: ${url}`;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(message).then(() => {
+                this.$dispatch('toast', {
+                    type: 'info',
+                    title: 'Copied to clipboard',
+                    message: 'Paste this message in KingsChat manually'
+                });
+            }).catch(() => {
+                this.$dispatch('toast', {
+                    type: 'error',
+                    title: 'Share failed',
+                    message: 'Unable to share or copy message'
+                });
+            });
+        } else {
+            this.$dispatch('toast', {
+                type: 'error',
+                title: 'Share failed',
+                message: 'Clipboard not available. Try using a modern browser.'
+            });
+        }
+    }
+}));
+
 // Make Alpine available globally
 window.Alpine = Alpine;
 

@@ -20,6 +20,15 @@
                     <h1 class="text-xl font-bold text-gray-900">{{ $announcement->title }}</h1>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
+                    {{-- Share to KingsChat Button --}}
+                    <x-share-kingschat-button
+                        :title="'Announcement: ' . $announcement->title"
+                        :url="route('announcements.show', $announcement)"
+                        type="announcement"
+                        variant="secondary"
+                        size="sm"
+                    />
+
                     @if($announcement->is_pinned)
                         <span class="badge badge-primary">Pinned</span>
                     @endif

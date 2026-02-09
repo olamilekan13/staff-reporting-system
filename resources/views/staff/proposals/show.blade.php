@@ -43,6 +43,15 @@
                         Edit
                     </x-button>
                 @endcan
+
+                {{-- Share to KingsChat Button --}}
+                <x-share-kingschat-button
+                    :title="'Proposal: ' . $proposal->title"
+                    :url="route('staff.proposals.show', $proposal)"
+                    type="proposal"
+                    variant="secondary"
+                />
+
                 @can('delete', $proposal)
                     <form method="POST" action="{{ route('staff.proposals.destroy', $proposal) }}" onsubmit="return confirm('Are you sure you want to delete this proposal?')">
                         @csrf
@@ -171,7 +180,21 @@
                                     <span class="text-xs text-gray-400" x-text="comment.created_at_human"></span>
                                 </div>
                                 <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap" x-text="comment.content"></p>
-                                <button @click="startReply(comment.id)" class="text-xs text-primary-600 hover:text-primary-700 mt-1">Reply</button>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <button @click="startReply(comment.id)" class="text-xs text-primary-600 hover:text-primary-700">Reply</button>
+                                    <button
+                                        type="button"
+                                        x-data="shareToKingsChat"
+                                        @click="share(`Comment by ${comment.user_name}`, '{{ url()->current() }}#comment-' + comment.id, 'comment')"
+                                        class="text-xs text-gray-400 hover:text-primary-600 flex items-center gap-1"
+                                        title="Share comment"
+                                    >
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                                        </svg>
+                                        Share
+                                    </button>
+                                </div>
 
                                 {{-- Reply form --}}
                                 <template x-if="replyingTo === comment.id">

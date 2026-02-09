@@ -32,7 +32,14 @@
       "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd AJAX file upload with progress tracking and toast notifications\n\n- Add AJAX upload handling for reports and proposals with large files\n- Display upload progress indicator for better user experience\n- Add toast notifications for success/error feedback\n- Return JSON responses for AJAX requests in controllers\n- Support video file uploads \\(mp4, mov, avi\\) for proposals\n- Make proposals.description column nullable to match validation\n- Add loading states to submit buttons during upload\n- Handle validation errors with toast messages\n\nTechnical changes:\n- Updated ReportController and ProposalController store/update methods\n- Added AJAX detection and JSON response handling\n- Enhanced JavaScript in create/edit forms for reports and proposals\n- Created migration to make proposals.description nullable\n- Added video MIME types to proposal validation rules\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git add:*)",
       "Bash(git restore:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(ls:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(python3:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(node remove_wrapper.js:*)",
+      "Bash(\"C:\\\\laragon\\\\www\\\\staff-reporting-management\\\\remove_wrapper.cjs\" << 'EOFJS'\nconst fs = require\\('fs'\\);\n\nconst files = [\n  'C:/laragon/www/staff-reporting-management/resources/views/staff/reports/edit.blade.php',\n  'C:/laragon/www/staff-reporting-management/resources/views/hod/reports/edit.blade.php',\n  'C:/laragon/www/staff-reporting-management/resources/views/hod/reports/create.blade.php',\n  'C:/laragon/www/staff-reporting-management/resources/views/admin/reports/edit.blade.php',\n  'C:/laragon/www/staff-reporting-management/resources/views/admin/reports/create.blade.php',\n  'C:/laragon/www/staff-reporting-management/resources/views/admin/departments/edit.blade.php',\n  'C:/laragon/www/staff-reporting-management/resources/views/admin/departments/create.blade.php',\n  'C:/laragon/www/staff-reporting-management/resources/views/admin/announcements/edit.blade.php',\n  'C:/laragon/www/staff-reporting-management/resources/views/admin/announcements/create.blade.php',\n  'C:/laragon/www/staff-reporting-management/resources/views/admin/users/edit.blade.php',\n  'C:/laragon/www/staff-reporting-management/resources/views/admin/users/create.blade.php'\n];\n\nfiles.forEach\\(file => {\n  let content = fs.readFileSync\\(file, 'utf8'\\);\n  \n  // Remove the opening div after @section\\('content'\\)\n  content = content.replace\\(/\\(@section\\\\\\('content'\\\\\\)\\\\r?\\\\n\\)    <div class=\"max-w-3xl\">\\\\r?\\\\n/, '$1'\\);\n  \n  // Remove the closing div before @endsection\n  content = content.replace\\(/    <\\\\/div>\\\\r?\\\\n\\(@endsection\\)/, '$1'\\);\n  \n  fs.writeFileSync\\(file, content, 'utf8'\\);\n  console.log\\('Updated:', file.split\\('/'\\).pop\\(\\)\\);\n}\\);\n\nconsole.log\\('\\\\nAll files updated successfully!'\\);\nEOFJS)",
+      "Bash(node remove_wrapper.cjs:*)"
     ]
   }
 }

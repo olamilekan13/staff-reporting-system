@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'kingschat' => [
+        'app_id' => env('KINGSCHAT_APP_ID', ''),
+    ],
+
 ];
