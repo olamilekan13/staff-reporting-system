@@ -47,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
         $this->configurePolicies();
         $this->registerObservers();
+        $this->configureMailFromDatabase();
 
         View::composer('layouts.app', \App\View\Composers\AppLayoutComposer::class);
 
@@ -78,6 +79,44 @@ class AppServiceProvider extends ServiceProvider
     protected function registerObservers(): void
     {
         User::observe(UserObserver::class);
+    }
+
+    /**
+     * Override mail configuration from database settings.
+     */
+    protected function configureMailFromDatabase(): void
+    {
+        try {
+            $mailer = SiteSetting::get('mail_mailer');
+        } catch (\Exception $e) {
+            return;
+        }
+
+        if (!$mailer) {
+            return;
+        }
+
+        config()->set('mail.default', $mailer);
+
+        if ($mailer === 'smtp') {
+            $password = SiteSetting::get('smtp_password');
+
+            config()->set('mail.mailers.smtp.host', SiteSetting::get('smtp_host', '127.0.0.1'));
+            config()->set('mail.mailers.smtp.port', (int) SiteSetting::get('smtp_port', 587));
+            config()->set('mail.mailers.smtp.username', SiteSetting::get('smtp_username'));
+            config()->set('mail.mailers.smtp.password', $password ? decrypt($password) : null);
+            config()->set('mail.mailers.smtp.scheme', SiteSetting::get('smtp_encryption') ?: null);
+        }
+
+        $fromAddress = SiteSetting::get('mail_from_address');
+        $fromName = SiteSetting::get('mail_from_name');
+
+        if ($fromAddress) {
+            config()->set('mail.from.address', $fromAddress);
+        }
+        if ($fromName) {
+            config()->set('mail.from.name', $fromName);
+        }
     }
 
     /**

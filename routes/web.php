@@ -51,6 +51,7 @@ Route::prefix('admin')
             // Settings routes
             Route::get('settings', [Admin\SettingController::class, 'index'])->name('admin.settings.index');
             Route::put('settings', [Admin\SettingController::class, 'update'])->name('admin.settings.update');
+            Route::post('settings/test-email', [Admin\SettingController::class, 'testEmail'])->name('admin.settings.test-email');
 
             // Activity logs
             Route::get('activity-logs', [Admin\ActivityLogController::class, 'index'])->name('admin.activity-logs.index');

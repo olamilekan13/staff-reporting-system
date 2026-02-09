@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\TestSmtpMail;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\JsonResponse;
 
@@ -95,6 +97,16 @@ class SettingController extends Controller
                 }
             }
 
+            if ($setting->key === 'smtp_password') {
+                $data[$setting->key] = [
+                    'value' => $setting->getRawOriginal('value') ? '********' : '',
+                    'type' => $setting->type,
+                    'label' => $setting->label,
+                    'description' => $setting->description,
+                ];
+                continue;
+            }
+
             if ($setting->key === 'max_upload_size') {
                 $data[$setting->key] = [
                     'value' => $setting->value / (1024 * 1024),
@@ -134,6 +146,12 @@ class SettingController extends Controller
                 'mail_from_name' => 'required|string|max:255',
                 'mail_from_address' => 'required|email|max:255',
                 'email_signature' => 'nullable|string|max:2000',
+                'mail_mailer' => 'required|string|in:smtp,log,sendmail',
+                'smtp_host' => 'required_if:mail_mailer,smtp|nullable|string|max:255',
+                'smtp_port' => 'required_if:mail_mailer,smtp|nullable|integer|min:1|max:65535',
+                'smtp_username' => 'nullable|string|max:255',
+                'smtp_password' => 'nullable|string|max:500',
+                'smtp_encryption' => 'required_if:mail_mailer,smtp|nullable|string|in:tls,ssl,none',
             ],
             SiteSetting::GROUP_REPORTS => [
                 'max_upload_size' => 'required|numeric|min:1|max:1024',
@@ -187,6 +205,46 @@ class SettingController extends Controller
         SiteSetting::set('mail_from_name', $request->input('mail_from_name'));
         SiteSetting::set('mail_from_address', $request->input('mail_from_address'));
         SiteSetting::set('email_signature', $request->input('email_signature'));
+        SiteSetting::set('mail_mailer', $request->input('mail_mailer'));
+        SiteSetting::set('smtp_host', $request->input('smtp_host'));
+        SiteSetting::set('smtp_port', $request->input('smtp_port'));
+        SiteSetting::set('smtp_username', $request->input('smtp_username'));
+
+        $password = $request->input('smtp_password');
+        if ($password !== null && $password !== '') {
+            SiteSetting::set('smtp_password', encrypt($password));
+        }
+
+        $encryption = $request->input('smtp_encryption');
+        SiteSetting::set('smtp_encryption', $encryption === 'none' ? '' : $encryption);
+    }
+
+    public function testEmail(Request $request): JsonResponse
+    {
+        Gate::authorize('manage', SiteSetting::class);
+
+        $user = $request->user();
+
+        if (!$user->email) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account does not have an email address configured.',
+            ], 422);
+        }
+
+        try {
+            Mail::to($user->email)->send(new TestSmtpMail($user));
+
+            return response()->json([
+                'success' => true,
+                'message' => "Test email sent successfully to {$user->email}.",
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send test email: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     private function saveReportsSettings(Request $request): void

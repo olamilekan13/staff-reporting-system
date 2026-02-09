@@ -208,8 +208,9 @@
 
     {{-- Email Tab --}}
     <div x-show="activeTab === 'email'" x-transition>
-        <x-card title="Email Settings" subtitle="Configure email sender information">
-            <form @submit.prevent="saveTab('email')">
+        <form @submit.prevent="saveTab('email')">
+            {{-- Email Sender Settings --}}
+            <x-card title="Email Sender Settings" subtitle="Configure email sender information">
                 <div class="space-y-5">
                     <x-input
                         name="mail_from_name"
@@ -239,21 +240,126 @@
                         >{{ old('email_signature', $settings['email']['email_signature']['value'] ?? '') }}</textarea>
                     </div>
                 </div>
+            </x-card>
 
-                <div class="flex items-center gap-3 mt-6 pt-5 border-t border-gray-100">
-                    <button type="submit" class="btn btn-primary" :disabled="loading.email">
-                        <span x-show="!loading.email">Save Changes</span>
-                        <span x-show="loading.email" class="flex items-center gap-2">
-                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Saving...
-                        </span>
-                    </button>
+            {{-- SMTP Configuration --}}
+            <x-card title="SMTP Configuration" subtitle="Configure mail transport settings" class="mt-6">
+                <div class="space-y-5" x-data="{ mailer: '{{ old('mail_mailer', $settings['email']['mail_mailer']['value'] ?? 'log') }}' }">
+                    <div>
+                        <label for="mail_mailer" class="label">
+                            Mail Driver
+                            <span class="text-red-500">*</span>
+                        </label>
+                        <select
+                            name="mail_mailer"
+                            id="mail_mailer"
+                            class="input"
+                            required
+                            x-model="mailer"
+                        >
+                            <option value="log" :selected="mailer === 'log'">Log (Development)</option>
+                            <option value="smtp" :selected="mailer === 'smtp'">SMTP</option>
+                            <option value="sendmail" :selected="mailer === 'sendmail'">Sendmail</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Use "Log" for development (emails saved to log file). Use "SMTP" for production.</p>
+                    </div>
+
+                    {{-- SMTP-specific fields --}}
+                    <template x-if="mailer === 'smtp'">
+                        <div class="space-y-5 pt-2 border-t border-gray-100">
+                            <x-input
+                                name="smtp_host"
+                                label="SMTP Host"
+                                placeholder="smtp.gmail.com"
+                                :value="old('smtp_host', $settings['email']['smtp_host']['value'] ?? '')"
+                                required
+                            />
+
+                            <x-input
+                                name="smtp_port"
+                                label="SMTP Port"
+                                type="number"
+                                placeholder="587"
+                                :value="old('smtp_port', $settings['email']['smtp_port']['value'] ?? '587')"
+                                required
+                            />
+
+                            <x-input
+                                name="smtp_username"
+                                label="SMTP Username"
+                                placeholder="your-email@gmail.com"
+                                :value="old('smtp_username', $settings['email']['smtp_username']['value'] ?? '')"
+                            />
+
+                            <div>
+                                <label for="smtp_password" class="label">SMTP Password</label>
+                                <input
+                                    type="password"
+                                    name="smtp_password"
+                                    id="smtp_password"
+                                    class="input"
+                                    placeholder="{{ ($settings['email']['smtp_password']['value'] ?? '') === '********' ? 'Leave blank to keep current password' : 'Enter SMTP password' }}"
+                                    autocomplete="new-password"
+                                >
+                                <p class="text-xs text-gray-500 mt-1">
+                                    @if(($settings['email']['smtp_password']['value'] ?? '') === '********')
+                                        A password is currently set. Leave blank to keep the existing password.
+                                    @else
+                                        No password is currently set.
+                                    @endif
+                                </p>
+                            </div>
+
+                            <div>
+                                <label for="smtp_encryption" class="label">
+                                    Encryption
+                                    <span class="text-red-500">*</span>
+                                </label>
+                                <select
+                                    name="smtp_encryption"
+                                    id="smtp_encryption"
+                                    class="input"
+                                    required
+                                >
+                                    @php
+                                        $currentEncryption = old('smtp_encryption', $settings['email']['smtp_encryption']['value'] ?? 'tls');
+                                        if ($currentEncryption === '' || $currentEncryption === null) $currentEncryption = 'none';
+                                    @endphp
+                                    <option value="tls" {{ $currentEncryption === 'tls' ? 'selected' : '' }}>TLS (Recommended)</option>
+                                    <option value="ssl" {{ $currentEncryption === 'ssl' ? 'selected' : '' }}>SSL</option>
+                                    <option value="none" {{ $currentEncryption === 'none' ? 'selected' : '' }}>None</option>
+                                </select>
+                            </div>
+                        </div>
+                    </template>
                 </div>
-            </form>
-        </x-card>
+            </x-card>
+
+            {{-- Save and Test Buttons --}}
+            <div class="flex items-center gap-3 mt-6">
+                <button type="submit" class="btn btn-primary" :disabled="loading.email">
+                    <span x-show="!loading.email">Save Email Settings</span>
+                    <span x-show="loading.email" class="flex items-center gap-2">
+                        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Saving...
+                    </span>
+                </button>
+
+                <button type="button" class="btn btn-secondary" @click="sendTestEmail()" :disabled="loading.testEmail">
+                    <span x-show="!loading.testEmail">Send Test Email</span>
+                    <span x-show="loading.testEmail" class="flex items-center gap-2">
+                        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Sending...
+                    </span>
+                </button>
+            </div>
+        </form>
     </div>
 
     {{-- Reports Tab --}}
@@ -385,6 +491,7 @@ function settingsPage() {
             email: false,
             reports: false,
             features: false,
+            testEmail: false,
         },
 
         async saveTab(group) {
@@ -431,6 +538,44 @@ function settingsPage() {
                 console.error('Error:', error);
             } finally {
                 this.loading[group] = false;
+            }
+        },
+
+        async sendTestEmail() {
+            this.loading.testEmail = true;
+
+            try {
+                const response = await fetch('{{ route('admin.settings.test-email') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({})
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    this.$dispatch('toast', {
+                        type: 'success',
+                        title: data.message || 'Test email sent successfully.'
+                    });
+                } else {
+                    this.$dispatch('toast', {
+                        type: 'error',
+                        title: data.message || 'Failed to send test email.'
+                    });
+                }
+            } catch (error) {
+                this.$dispatch('toast', {
+                    type: 'error',
+                    title: 'An error occurred while sending the test email.'
+                });
+                console.error('Error:', error);
+            } finally {
+                this.loading.testEmail = false;
             }
         },
 

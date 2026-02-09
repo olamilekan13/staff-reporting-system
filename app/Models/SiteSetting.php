@@ -184,6 +184,12 @@ class SiteSetting extends Model implements HasMedia
             ['key' => 'mail_from_name', 'value' => 'Staff Reporting', 'type' => self::TYPE_TEXT, 'group' => self::GROUP_EMAIL, 'label' => 'From Name'],
             ['key' => 'mail_from_address', 'value' => 'noreply@example.com', 'type' => self::TYPE_TEXT, 'group' => self::GROUP_EMAIL, 'label' => 'From Address'],
             ['key' => 'email_signature', 'value' => 'Best regards,\nThe Staff Reporting Team', 'type' => self::TYPE_TEXTAREA, 'group' => self::GROUP_EMAIL, 'label' => 'Email Signature'],
+            ['key' => 'mail_mailer', 'value' => 'log', 'type' => self::TYPE_TEXT, 'group' => self::GROUP_EMAIL, 'label' => 'Mail Driver'],
+            ['key' => 'smtp_host', 'value' => '', 'type' => self::TYPE_TEXT, 'group' => self::GROUP_EMAIL, 'label' => 'SMTP Host'],
+            ['key' => 'smtp_port', 'value' => '587', 'type' => self::TYPE_NUMBER, 'group' => self::GROUP_EMAIL, 'label' => 'SMTP Port'],
+            ['key' => 'smtp_username', 'value' => '', 'type' => self::TYPE_TEXT, 'group' => self::GROUP_EMAIL, 'label' => 'SMTP Username'],
+            ['key' => 'smtp_password', 'value' => '', 'type' => self::TYPE_TEXT, 'group' => self::GROUP_EMAIL, 'label' => 'SMTP Password'],
+            ['key' => 'smtp_encryption', 'value' => 'tls', 'type' => self::TYPE_TEXT, 'group' => self::GROUP_EMAIL, 'label' => 'SMTP Encryption'],
 
             // Reports
             ['key' => 'max_upload_size', 'value' => '52428800', 'type' => self::TYPE_NUMBER, 'group' => self::GROUP_REPORTS, 'label' => 'Max Upload Size (bytes)'],
