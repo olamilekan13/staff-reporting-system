@@ -60,20 +60,9 @@
 
     @stack('styles')
 
-    {{-- KingsChat SDK --}}
+    {{-- KingsChat App ID (passed to JS for SDK init) --}}
     @if(config('services.kingschat.app_id'))
-        <script src="https://cdn.kingsch.at/sdk/web/v1/kingschat-sdk.js" defer></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                if (window.KingsChatSDK) {
-                    KingsChatSDK.init({
-                        appId: '{{ config('services.kingschat.app_id') }}',
-                        onReady: () => console.log('KingsChat SDK initialized'),
-                        onError: (error) => console.error('KingsChat SDK error:', error)
-                    });
-                }
-            });
-        </script>
+        <meta name="kingschat-app-id" content="{{ config('services.kingschat.app_id') }}">
     @endif
 </head>
 <body x-data="appLayout" class="font-sans bg-gray-50 antialiased">
@@ -112,6 +101,11 @@
 
     {{-- Toast notifications --}}
     <x-toast />
+
+    {{-- KingsChat Share Modal --}}
+    @auth
+        <x-share-kingschat-modal />
+    @endauth
 
     {{-- Session flash messages --}}
     @if(session('success'))

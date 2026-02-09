@@ -92,6 +92,9 @@ Route::middleware('auth')->group(function () {
     // Comments (AJAX)
     Route::post('reports/{report}/comments', [CommentController::class, 'storeForReport'])->name('reports.comments.store');
     Route::post('proposals/{proposal}/comments', [CommentController::class, 'storeForProposal'])->name('proposals.comments.store');
+
+    // User search (for KingsChat share modal)
+    Route::get('users/search', \App\Http\Controllers\Web\UserSearchController::class)->name('users.search');
 });
 
 // ─── Signed Media URL (for Office Online viewer) ────────────────────

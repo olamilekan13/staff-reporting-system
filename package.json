@@ -19,6 +19,7 @@
     "dependencies": {
         "@alpinejs/collapse": "^3.15.8",
         "@alpinejs/focus": "^3.15.8",
-        "alpinejs": "^3.15.8"
+        "alpinejs": "^3.15.8",
+        "kingschat-web-sdk": "^0.1.0"
     }
 }

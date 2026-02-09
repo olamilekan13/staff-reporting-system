@@ -55,86 +55,141 @@ Alpine.data('toastNotification', () => ({
     },
 }));
 
+// KingsChat SDK service
+import { sendKingsChatMessage } from './kingschat-service';
+
 // Share to KingsChat component
 Alpine.data('shareToKingsChat', () => ({
-    sharing: false,
+    // Share context
+    shareTitle: '',
+    shareUrl: '',
+    shareType: '',
 
-    async share(title, url, type) {
-        // Check if KingsChat SDK is loaded
-        if (!window.KingsChatSDK) {
-            this.$dispatch('toast', {
-                type: 'error',
-                title: 'KingsChat not available',
-                message: 'Please ensure KingsChat is installed and you are logged in.'
-            });
+    // Modal state
+    searchQuery: '',
+    searchResults: [],
+    searching: false,
+    selectedUser: null,
+
+    // Send state
+    sending: false,
+    sent: false,
+    error: '',
+
+    // Debounce timer
+    _searchTimeout: null,
+
+    share(title, url, type) {
+        this.shareTitle = title;
+        this.shareUrl = url;
+        this.shareType = type;
+        this.resetState();
+        this.$dispatch('open-modal', 'kingschat-share');
+    },
+
+    resetState() {
+        this.searchQuery = '';
+        this.searchResults = [];
+        this.searching = false;
+        this.selectedUser = null;
+        this.sending = false;
+        this.sent = false;
+        this.error = '';
+    },
+
+    onSearchInput() {
+        clearTimeout(this._searchTimeout);
+        this.error = '';
+
+        if (this.searchQuery.length < 2) {
+            this.searchResults = [];
+            this.searching = false;
             return;
         }
 
-        this.sharing = true;
+        this.searching = true;
+        this._searchTimeout = setTimeout(() => this.searchUsers(), 300);
+    },
+
+    async searchUsers() {
+        try {
+            const response = await window.axios.get('/users/search', {
+                params: { q: this.searchQuery }
+            });
+            this.searchResults = response.data.users;
+        } catch {
+            this.searchResults = [];
+            this.error = 'Failed to search users. Please try again.';
+        } finally {
+            this.searching = false;
+        }
+    },
+
+    selectUser(user) {
+        this.selectedUser = user;
+        this.error = '';
+    },
+
+    deselectUser() {
+        this.selectedUser = null;
+    },
+
+    getMessageText() {
+        const emojis = {
+            'report': '📊', 'proposal': '📄',
+            'comment': '💬', 'announcement': '📢'
+        };
+        const emoji = emojis[this.shareType] || '📎';
+        return `${emoji} ${this.shareTitle}\n\nView: ${this.shareUrl}`;
+    },
+
+    async send() {
+        if (!this.selectedUser) return;
+
+        this.sending = true;
+        this.error = '';
 
         try {
-            // Format message based on type
-            const emoji = this.getTypeEmoji(type);
-            const message = `${emoji} ${title}\n\nView: ${url}`;
-
-            // Call KingsChat SDK share method
-            await window.KingsChatSDK.share({
-                type: 'text',
-                message: message,
-                url: url
-            });
-
+            await sendKingsChatMessage(
+                this.selectedUser.kingschat_id,
+                this.getMessageText()
+            );
+            this.sent = true;
             this.$dispatch('toast', {
                 type: 'success',
-                title: 'Shared successfully!',
-                message: 'Message sent via KingsChat'
+                title: 'Message sent!',
+                message: `Shared with ${this.selectedUser.full_name} on KingsChat`
             });
-        } catch (error) {
-            console.error('KingsChat share error:', error);
-
-            // Fallback: Copy to clipboard
-            this.copyToClipboard(title, url, type);
+            setTimeout(() => {
+                this.$dispatch('close-modal', 'kingschat-share');
+            }, 1500);
+        } catch (err) {
+            console.error('[KingsChat]', err.message, err.status || '');
+            if (err.message === 'User closed window before allowing access') {
+                this.error = 'KingsChat login was cancelled. Please try again.';
+            } else if (err.message === 'You have to enable popups to show login window') {
+                this.error = 'Please enable popups in your browser to connect with KingsChat.';
+            } else if (err.status === 500) {
+                this.error = 'KingsChat server error. The message has been copied to your clipboard instead.';
+                this.copyToClipboard();
+            } else if (err.status === 404) {
+                this.error = `User "${this.selectedUser.kingschat_id}" was not found on KingsChat.`;
+            } else if (err.status >= 400) {
+                this.error = `KingsChat error: ${err.message}`;
+            } else {
+                this.error = `Failed to send: ${err.message}`;
+            }
         } finally {
-            this.sharing = false;
+            this.sending = false;
         }
     },
 
-    getTypeEmoji(type) {
-        const emojis = {
-            'report': '📊',
-            'proposal': '📄',
-            'comment': '💬',
-            'announcement': '📢'
-        };
-        return emojis[type] || '📎';
-    },
-
-    copyToClipboard(title, url, type) {
-        const emoji = this.getTypeEmoji(type);
-        const message = `${emoji} ${title}\n\nView: ${url}`;
-
+    copyToClipboard() {
+        const message = this.getMessageText();
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(message).then(() => {
-                this.$dispatch('toast', {
-                    type: 'info',
-                    title: 'Copied to clipboard',
-                    message: 'Paste this message in KingsChat manually'
-                });
-            }).catch(() => {
-                this.$dispatch('toast', {
-                    type: 'error',
-                    title: 'Share failed',
-                    message: 'Unable to share or copy message'
-                });
-            });
-        } else {
-            this.$dispatch('toast', {
-                type: 'error',
-                title: 'Share failed',
-                message: 'Clipboard not available. Try using a modern browser.'
-            });
+            navigator.clipboard.writeText(message).catch(() => {});
         }
-    }
+    },
 }));
 
 // Make Alpine available globally
