@@ -3,7 +3,10 @@
 namespace App\Services;
 
 use App\Mail\NewAnnouncementMail;
+use App\Mail\NewCommentForAdminMail;
 use App\Mail\NewCommentMail;
+use App\Mail\NewProposalMail;
+use App\Mail\NewReportMail;
 use App\Mail\ProposalStatusChangedMail;
 use App\Mail\ReportStatusChangedMail;
 use App\Models\Announcement;
@@ -420,5 +423,47 @@ class NotificationService
             'notifiable_type' => Announcement::class,
             'notifiable_id' => $announcement->id,
         ]);
+    }
+
+    /**
+     * Notify super admins about a newly created report.
+     */
+    public function notifyNewReport(Report $report): void
+    {
+        $superAdmins = User::role('super_admin')->active()->get();
+
+        foreach ($superAdmins as $admin) {
+            if ($admin->email) {
+                $this->sendEmail($admin, new NewReportMail($report));
+            }
+        }
+    }
+
+    /**
+     * Notify super admins about a newly created proposal.
+     */
+    public function notifyNewProposal(Proposal $proposal): void
+    {
+        $superAdmins = User::role('super_admin')->active()->get();
+
+        foreach ($superAdmins as $admin) {
+            if ($admin->email) {
+                $this->sendEmail($admin, new NewProposalMail($proposal));
+            }
+        }
+    }
+
+    /**
+     * Notify super admins about a newly created comment.
+     */
+    public function notifyNewComment(Comment $comment): void
+    {
+        $superAdmins = User::role('super_admin')->active()->get();
+
+        foreach ($superAdmins as $admin) {
+            if ($admin->email) {
+                $this->sendEmail($admin, new NewCommentForAdminMail($comment));
+            }
+        }
     }
 }

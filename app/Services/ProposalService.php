@@ -66,6 +66,9 @@ class ProposalService
 
         ActivityLog::log(ActivityLog::ACTION_CREATE, $proposal);
 
+        // Notify super admins about new proposal
+        $this->notificationService->notifyNewProposal($proposal->fresh(['user']));
+
         return $proposal->fresh(['user']);
     }
 

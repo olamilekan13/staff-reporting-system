@@ -95,6 +95,9 @@ class ReportService
 
         ActivityLog::log(ActivityLog::ACTION_CREATE, $report);
 
+        // Notify super admins about new report
+        $this->notificationService->notifyNewReport($report->fresh(['user', 'department']));
+
         return $report->fresh(['user', 'department']);
     }
 

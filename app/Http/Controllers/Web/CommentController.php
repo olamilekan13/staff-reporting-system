@@ -74,6 +74,9 @@ class CommentController extends Controller
         $comment->load(['user', 'commentable', 'parent.user']);
         $this->notificationService->notifyComment($comment);
 
+        // Notify super admins about new comment
+        $this->notificationService->notifyNewComment($comment);
+
         return response()->json([
             'comment' => [
                 'id' => $comment->id,
