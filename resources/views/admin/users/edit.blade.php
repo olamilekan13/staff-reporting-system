@@ -29,6 +29,21 @@
                         <p class="mt-1.5 text-xs text-gray-500">KingsChat ID cannot be changed after creation.</p>
                     </div>
 
+                    <x-select
+                        name="title"
+                        label="Title"
+                        placeholder="Select Title"
+                        :selected="old('title', $user->title)"
+                        :error="$errors->first('title')"
+                        required
+                        :options="[
+                            'Pastor' => 'Pastor',
+                            'Deacon' => 'Deacon',
+                            'Deaconess' => 'Deaconess',
+                            'Brother' => 'Brother',
+                            'Sister' => 'Sister',
+                        ]" />
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <x-input
                             name="first_name"
@@ -61,7 +76,8 @@
                         type="tel"
                         :value="old('phone', $user->phone)"
                         :error="$errors->first('phone')"
-                        placeholder="e.g., +234801234567 (optional)" />
+                        required
+                        placeholder="e.g., +234801234567" />
 
                     <x-select
                         name="department_id"

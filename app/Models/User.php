@@ -19,6 +19,7 @@ class User extends Authenticatable implements HasMedia
 
     protected $fillable = [
         'kingschat_id',
+        'title',
         'first_name',
         'last_name',
         'email',

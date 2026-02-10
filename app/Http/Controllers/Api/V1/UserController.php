@@ -75,9 +75,10 @@ class UserController extends ApiController
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['kingschat_id', 'first_name', 'last_name'],
+                required: ['kingschat_id', 'title', 'first_name', 'last_name', 'phone'],
                 properties: [
                     new OA\Property(property: 'kingschat_id', type: 'string', maxLength: 255, example: 'john.doe'),
+                    new OA\Property(property: 'title', type: 'string', enum: ['Pastor', 'Deacon', 'Deaconess', 'Brother', 'Sister'], example: 'Brother'),
                     new OA\Property(property: 'first_name', type: 'string', maxLength: 255, example: 'John'),
                     new OA\Property(property: 'last_name', type: 'string', maxLength: 255, example: 'Doe'),
                     new OA\Property(property: 'email', type: 'string', format: 'email', maxLength: 255, example: 'john@example.com'),
@@ -110,10 +111,11 @@ class UserController extends ApiController
 
         $validator = Validator::make($request->all(), [
             'kingschat_id' => 'required|string|max:255|unique:users,kingschat_id',
+            'title' => 'required|string|in:Pastor,Deacon,Deaconess,Brother,Sister',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'required|string|max:20',
             'department_id' => 'nullable|integer|exists:departments,id',
             'role' => 'nullable|string|in:admin,head_of_operations,hod,staff',
         ]);
@@ -204,6 +206,7 @@ class UserController extends ApiController
         requestBody: new OA\RequestBody(
             content: new OA\JsonContent(
                 properties: [
+                    new OA\Property(property: 'title', type: 'string', enum: ['Pastor', 'Deacon', 'Deaconess', 'Brother', 'Sister']),
                     new OA\Property(property: 'first_name', type: 'string', maxLength: 255),
                     new OA\Property(property: 'last_name', type: 'string', maxLength: 255),
                     new OA\Property(property: 'email', type: 'string', format: 'email', maxLength: 255),
@@ -236,10 +239,11 @@ class UserController extends ApiController
         Gate::authorize('update', $user);
 
         $validator = Validator::make($request->all(), [
+            'title' => 'sometimes|required|string|in:Pastor,Deacon,Deaconess,Brother,Sister',
             'first_name' => 'sometimes|required|string|max:255',
             'last_name' => 'sometimes|required|string|max:255',
             'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'sometimes|required|string|max:20',
             'department_id' => 'nullable|integer|exists:departments,id',
             'role' => 'nullable|string|in:admin,head_of_operations,hod,staff',
         ]);

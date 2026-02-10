@@ -65,10 +65,11 @@ class UserController extends Controller
 
         $validator = Validator::make($request->all(), [
             'kingschat_id' => 'required|string|max:100|unique:users,kingschat_id',
+            'title' => 'required|string|in:Pastor,Deacon,Deaconess,Brother,Sister',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255|unique:users,email',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'required|string|max:20',
             'department_id' => 'nullable|exists:departments,id',
             'role' => 'required|in:super_admin,admin,head_of_operations,hod,staff',
         ]);
@@ -117,10 +118,11 @@ class UserController extends Controller
         Gate::authorize('update', $user);
 
         $validator = Validator::make($request->all(), [
+            'title' => 'required|string|in:Pastor,Deacon,Deaconess,Brother,Sister',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'required|string|max:20',
             'department_id' => 'nullable|exists:departments,id',
             'role' => 'required|in:super_admin,admin,head_of_operations,hod,staff',
         ]);

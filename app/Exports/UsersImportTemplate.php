@@ -13,6 +13,7 @@ class UsersImportTemplate implements FromArray, WithHeadings, WithStyles
     {
         return [
             'kingschat_id',
+            'title',
             'first_name',
             'last_name',
             'email',
@@ -27,6 +28,7 @@ class UsersImportTemplate implements FromArray, WithHeadings, WithStyles
         return [
             [
                 'john.doe',
+                'Brother',
                 'John',
                 'Doe',
                 'john@example.com',

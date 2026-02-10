@@ -28,10 +28,11 @@ class UsersImport implements ToCollection, WithHeadingRow, WithValidation, Skips
 
             $user = User::create([
                 'kingschat_id' => $row['kingschat_id'],
+                'title' => $row['title'],
                 'first_name' => $row['first_name'],
                 'last_name' => $row['last_name'],
                 'email' => $row['email'] ?? null,
-                'phone' => $row['phone'] ?? null,
+                'phone' => $row['phone'],
                 'department_id' => $departmentId,
                 'is_active' => true,
             ]);
@@ -51,10 +52,11 @@ class UsersImport implements ToCollection, WithHeadingRow, WithValidation, Skips
     {
         return [
             'kingschat_id' => 'required|string|unique:users,kingschat_id',
+            'title' => 'required|string|in:Pastor,Deacon,Deaconess,Brother,Sister',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'required|string|max:20',
             'department_name' => 'nullable|string|max:255',
             'role' => 'nullable|string|in:admin,head_of_operations,hod,staff',
         ];

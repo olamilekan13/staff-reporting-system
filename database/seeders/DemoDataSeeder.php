@@ -38,6 +38,7 @@ class DemoDataSeeder extends Seeder
         // Create Super Admin
         $superAdmin = User::create([
             'kingschat_id' => 'superadmin001',
+            'title' => 'Pastor',
             'first_name' => 'Super',
             'last_name' => 'Admin',
             'email' => 'superadmin@example.com',
@@ -49,6 +50,7 @@ class DemoDataSeeder extends Seeder
         // Create Admin
         $admin = User::create([
             'kingschat_id' => 'admin001',
+            'title' => 'Pastor',
             'first_name' => 'System',
             'last_name' => 'Admin',
             'email' => 'admin@example.com',
@@ -60,6 +62,7 @@ class DemoDataSeeder extends Seeder
         // Create Head of Operations
         $headOps = User::create([
             'kingschat_id' => 'headops001',
+            'title' => 'Deacon',
             'first_name' => 'Head',
             'last_name' => 'Operations',
             'email' => 'headops@example.com',
@@ -72,6 +75,7 @@ class DemoDataSeeder extends Seeder
         // Create HODs
         $itHod = User::create([
             'kingschat_id' => 'ithod001',
+            'title' => 'Brother',
             'first_name' => 'IT',
             'last_name' => 'Manager',
             'email' => 'ithod@example.com',
@@ -84,6 +88,7 @@ class DemoDataSeeder extends Seeder
 
         $hrHod = User::create([
             'kingschat_id' => 'hrhod001',
+            'title' => 'Sister',
             'first_name' => 'HR',
             'last_name' => 'Manager',
             'email' => 'hrhod@example.com',
@@ -98,6 +103,7 @@ class DemoDataSeeder extends Seeder
         $staffMembers = [
             [
                 'kingschat_id' => 'staff001',
+                'title' => 'Brother',
                 'first_name' => 'John',
                 'last_name' => 'Developer',
                 'email' => 'john@example.com',
@@ -106,6 +112,7 @@ class DemoDataSeeder extends Seeder
             ],
             [
                 'kingschat_id' => 'staff002',
+                'title' => 'Sister',
                 'first_name' => 'Jane',
                 'last_name' => 'Designer',
                 'email' => 'jane@example.com',
@@ -114,6 +121,7 @@ class DemoDataSeeder extends Seeder
             ],
             [
                 'kingschat_id' => 'staff003',
+                'title' => 'Brother',
                 'first_name' => 'Mike',
                 'last_name' => 'HRStaff',
                 'email' => 'mike@example.com',
@@ -122,6 +130,7 @@ class DemoDataSeeder extends Seeder
             ],
             [
                 'kingschat_id' => 'staff004',
+                'title' => 'Sister',
                 'first_name' => 'Sarah',
                 'last_name' => 'Finance',
                 'email' => 'sarah@example.com',
