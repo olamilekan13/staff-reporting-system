@@ -205,7 +205,7 @@ class NotificationService
     }
 
     /**
-     * Send email notification (queued).
+     * Send email notification.
      */
     public function sendEmail(User $user, Mailable $mailable): void
     {
@@ -215,9 +215,9 @@ class NotificationService
         }
 
         try {
-            Mail::to($user->email)->queue($mailable);
+            Mail::to($user->email)->send($mailable);
         } catch (\Exception $e) {
-            Log::error("Failed to queue email for user {$user->id}: " . $e->getMessage());
+            Log::error("Failed to send email for user {$user->id}: " . $e->getMessage());
         }
     }
 
