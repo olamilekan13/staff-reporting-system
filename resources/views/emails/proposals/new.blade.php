@@ -17,7 +17,7 @@ A new proposal has been submitted in the system.
 </x-mail::panel>
 @endif
 
-<x-mail::button :url="config('app.url') . '/proposals/' . $proposal->id">
+<x-mail::button :url="config('app.url') . '/admin/proposals/' . $proposal->id">
 View Proposal
 </x-mail::button>
 

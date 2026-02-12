@@ -15,7 +15,7 @@ A new comment has been posted on a {{ strtolower($resourceType) }} in the system
 {{ Str::limit($comment->content, 300) }}
 </x-mail::panel>
 
-<x-mail::button :url="config('app.url') . '/' . strtolower($resourceType) . 's/' . $resource->id">
+<x-mail::button :url="config('app.url') . '/admin/' . strtolower($resourceType) . 's/' . $resource->id">
 View {{ $resourceType }}
 </x-mail::button>
 

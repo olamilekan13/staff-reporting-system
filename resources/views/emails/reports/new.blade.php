@@ -20,7 +20,7 @@ A new report has been created in the system.
 </x-mail::panel>
 @endif
 
-<x-mail::button :url="config('app.url') . '/reports/' . $report->id">
+<x-mail::button :url="config('app.url') . '/admin/reports/' . $report->id">
 View Report
 </x-mail::button>
 
