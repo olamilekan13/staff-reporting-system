@@ -49,6 +49,8 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $reportLinks = $user->reportLinks()->latest()->get();
+
         return view('staff.dashboard', compact(
             'reportCounts',
             'proposalCounts',
@@ -56,6 +58,7 @@ class DashboardController extends Controller
             'unreadNotificationCount',
             'latestNotifications',
             'announcements',
+            'reportLinks',
         ));
     }
 }

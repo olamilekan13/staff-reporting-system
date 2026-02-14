@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\NotificationPreferenceController;
 use App\Http\Controllers\Api\V1\ProposalController;
 use App\Http\Controllers\Api\V1\ReportController;
+use App\Http\Controllers\Api\V1\ReportLinkController;
 use App\Http\Controllers\Api\V1\SettingController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
@@ -82,6 +83,13 @@ Route::prefix('v1')->name('api.')->group(function () {
         Route::post('/users/import', [UserController::class, 'import']);
         Route::post('/users/{user}/activate', [UserController::class, 'activate']);
         Route::apiResource('users', UserController::class);
+
+        // Report Links (nested under users for creation/listing, standalone for update/delete)
+        Route::get('/users/{user}/report-links', [ReportLinkController::class, 'index']);
+        Route::post('/users/{user}/report-links', [ReportLinkController::class, 'store']);
+        Route::get('/report-links/{reportLink}', [ReportLinkController::class, 'show']);
+        Route::put('/report-links/{reportLink}', [ReportLinkController::class, 'update']);
+        Route::delete('/report-links/{reportLink}', [ReportLinkController::class, 'destroy']);
 
         // Departments
         Route::get('/departments/{department}/staff', [DepartmentController::class, 'staff']);

@@ -43,6 +43,13 @@ Route::prefix('admin')
             Route::post('users/{user}/toggle-activation', [Admin\UserController::class, 'toggleActivation'])->name('admin.users.toggle-activation');
             Route::resource('users', Admin\UserController::class)->names('admin.users');
 
+            // Report Links Management (AJAX) - super_admin only
+            Route::middleware('role:super_admin')->group(function () {
+                Route::post('users/{user}/report-links', [Admin\UserController::class, 'storeReportLink'])->name('admin.users.report-links.store');
+                Route::put('report-links/{reportLink}', [Admin\UserController::class, 'updateReportLink'])->name('admin.users.report-links.update');
+                Route::delete('report-links/{reportLink}', [Admin\UserController::class, 'destroyReportLink'])->name('admin.users.report-links.destroy');
+            });
+
             // Proposal routes
             Route::get('proposals', [Admin\ProposalController::class, 'index'])->name('admin.proposals.index');
             Route::get('proposals/{proposal}', [Admin\ProposalController::class, 'show'])->name('admin.proposals.show');

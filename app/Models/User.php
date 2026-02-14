@@ -106,6 +106,11 @@ class User extends Authenticatable implements HasMedia
         return $this->hasMany(Department::class, 'head_id');
     }
 
+    public function reportLinks(): HasMany
+    {
+        return $this->hasMany(ReportLink::class);
+    }
+
     // Scopes
     public function scopeActive($query)
     {

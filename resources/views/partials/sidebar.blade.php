@@ -205,6 +205,24 @@
                 </x-slot:icon>
                 My Proposals
             </x-sidebar-link>
+
+            {{-- Report Links (if any) --}}
+            @php
+                $userReportLinks = auth()->user()->reportLinks ?? collect();
+            @endphp
+            @if($userReportLinks->isNotEmpty())
+                <div class="pt-3 mt-3 border-t border-gray-100">
+                    <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Quick Links</p>
+                    @foreach($userReportLinks as $link)
+                        <a href="{{ $link->url }}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150 group">
+                            <svg class="w-5 h-5 text-gray-400 group-hover:text-primary-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg>
+                            Report {{ $loop->iteration }}
+                        </a>
+                    @endforeach
+                </div>
+            @endif
         @endif
     </nav>
 

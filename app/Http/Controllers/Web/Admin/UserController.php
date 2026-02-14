@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Department;
+use App\Models\ReportLink;
 use App\Models\User;
+use App\Services\ReportLinkService;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +16,8 @@ use Illuminate\Support\Facades\Validator;
 class UserController extends Controller
 {
     public function __construct(
-        protected UserService $userService
+        protected UserService $userService,
+        protected ReportLinkService $reportLinkService
     ) {}
 
     public function index(Request $request)
@@ -72,6 +75,8 @@ class UserController extends Controller
             'phone' => 'required|string|max:20',
             'department_id' => 'nullable|exists:departments,id',
             'role' => 'required|in:super_admin,admin,head_of_operations,hod,staff',
+            'report_links' => 'nullable|array',
+            'report_links.*' => 'nullable|url|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -79,6 +84,15 @@ class UserController extends Controller
         }
 
         $user = $this->userService->createUser($validator->validated());
+
+        // Add report links if provided and user is super_admin
+        if (auth()->user()->isSuperAdmin() && $request->has('report_links')) {
+            foreach ($request->report_links as $url) {
+                if (!empty($url)) {
+                    $this->reportLinkService->createLink($user, ['url' => $url]);
+                }
+            }
+        }
 
         return redirect()
             ->route('admin.users.show', $user)
@@ -90,8 +104,9 @@ class UserController extends Controller
         Gate::authorize('view', $user);
 
         $user = $this->userService->getUserWithActivitySummary($user);
+        $reportLinks = $this->reportLinkService->getLinksForUser($user);
 
-        return view('admin.users.show', compact('user'));
+        return view('admin.users.show', compact('user', 'reportLinks'));
     }
 
     public function edit(User $user)
@@ -110,7 +125,9 @@ class UserController extends Controller
             'staff' => 'Staff',
         ];
 
-        return view('admin.users.edit', compact('user', 'departments', 'roles'));
+        $reportLinks = $this->reportLinkService->getLinksForUser($user);
+
+        return view('admin.users.edit', compact('user', 'departments', 'roles', 'reportLinks'));
     }
 
     public function update(Request $request, User $user)
@@ -242,6 +259,85 @@ class UserController extends Controller
             'success' => true,
             'is_active' => $user->fresh()->is_active,
             'message' => $message,
+        ]);
+    }
+
+    /**
+     * Store a new report link for a user (AJAX).
+     */
+    public function storeReportLink(Request $request, User $user)
+    {
+        Gate::authorize('create', ReportLink::class);
+
+        $validator = Validator::make($request->all(), [
+            'url' => 'required|url|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()->toArray(),
+            ], 422);
+        }
+
+        $link = $this->reportLinkService->createLink($user, $validator->validated());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Report link added successfully',
+            'data' => [
+                'id' => $link->id,
+                'url' => $link->url,
+                'created_at' => $link->created_at->format('M d, Y'),
+            ],
+        ]);
+    }
+
+    /**
+     * Update a report link (AJAX).
+     */
+    public function updateReportLink(Request $request, ReportLink $reportLink)
+    {
+        Gate::authorize('update', $reportLink);
+
+        $validator = Validator::make($request->all(), [
+            'url' => 'required|url|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()->toArray(),
+            ], 422);
+        }
+
+        $link = $this->reportLinkService->updateLink($reportLink, $validator->validated());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Report link updated successfully',
+            'data' => [
+                'id' => $link->id,
+                'url' => $link->url,
+                'updated_at' => $link->updated_at->format('M d, Y'),
+            ],
+        ]);
+    }
+
+    /**
+     * Delete a report link (AJAX).
+     */
+    public function destroyReportLink(ReportLink $reportLink)
+    {
+        Gate::authorize('delete', $reportLink);
+
+        $this->reportLinkService->deleteLink($reportLink);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Report link deleted successfully',
         ]);
     }
 }

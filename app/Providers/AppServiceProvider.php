@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Models\Notification;
 use App\Models\Proposal;
 use App\Models\Report;
+use App\Models\ReportLink;
 use App\Models\SiteSetting;
 use App\Models\User;
 use App\Models\UserNotificationPreference;
@@ -18,6 +19,7 @@ use App\Policies\DepartmentPolicy;
 use App\Policies\NotificationPolicy;
 use App\Policies\NotificationPreferencePolicy;
 use App\Policies\ProposalPolicy;
+use App\Policies\ReportLinkPolicy;
 use App\Policies\ReportPolicy;
 use App\Policies\SettingPolicy;
 use App\Policies\UserPolicy;
@@ -71,6 +73,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Department::class, DepartmentPolicy::class);
         Gate::policy(SiteSetting::class, SettingPolicy::class);
+        Gate::policy(ReportLink::class, ReportLinkPolicy::class);
     }
 
     /**
