@@ -54,11 +54,15 @@ class ConvertOfficeToPdfAction
         $sourcePath = $media->getPath();
         $outputDir = dirname($sourcePath);
 
+        // Set user profile directory to avoid permission issues
+        $userProfile = env('LIBREOFFICE_USER_PROFILE', '/tmp/libreoffice-profile');
+
         $process = new Process([
             $sofficePath,
             '--headless',
             '--convert-to', 'pdf',
             '--outdir', $outputDir,
+            '-env:UserInstallation=file://' . $userProfile,
             $sourcePath,
         ]);
 
