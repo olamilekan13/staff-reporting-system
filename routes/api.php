@@ -40,6 +40,7 @@ Route::prefix('v1')->name('api.')->group(function () {
     Route::prefix('auth')->middleware('throttle:auth')->group(function () {
         Route::post('/verify-kingschat', [AuthController::class, 'verifyKingschat']);
         Route::post('/login', [AuthController::class, 'login']);
+        Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     });
 
     // Protected routes (require authentication)
@@ -49,6 +50,9 @@ Route::prefix('v1')->name('api.')->group(function () {
             Route::post('/logout', [AuthController::class, 'logout']);
             Route::get('/user', [AuthController::class, 'user']);
             Route::put('/profile', [AuthController::class, 'updateProfile']);
+            Route::post('/generate-temporary-password', [AuthController::class, 'generateTemporaryPassword']);
+            Route::post('/setup-password', [AuthController::class, 'setupPassword']);
+            Route::post('/change-password', [AuthController::class, 'changePassword']);
         });
 
         // Reports

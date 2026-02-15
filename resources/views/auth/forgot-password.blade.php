@@ -1,6 +1,6 @@
 @extends('layouts.guest')
 
-@section('title', 'Login')
+@section('title', 'Forgot Password')
 
 @section('content')
 <div x-data="{
@@ -8,101 +8,51 @@
     loading: false,
     kingschatId: '',
     phone: '',
-    password: '',
     temporaryPassword: '',
     newPassword: '',
     newPasswordConfirmation: '',
-    remember: false,
-    userName: '',
-    maskedPhone: '',
-    hasPassword: false,
     passwordCopied: false,
     tempPasswordExpiry: '',
     error: '',
-    showPassword: false,
     showTempPassword: false,
     showNewPassword: false,
     showNewPasswordConfirmation: false,
 
-    async verifyKingsChatId() {
+    async requestReset() {
         this.error = '';
+
         if (!this.kingschatId.trim()) {
             this.error = 'Please enter your KingsChat ID.';
             return;
         }
 
+        if (!this.phone.trim() || this.phone.length !== 4) {
+            this.error = 'Please enter the last 4 digits of your phone number.';
+            return;
+        }
+
         this.loading = true;
         try {
-            const response = await window.axios.post('{{ route('login.verify') }}', {
-                kingschat_id: this.kingschatId
+            const response = await window.axios.post('{{ url('forgot-password') }}', {
+                kingschat_id: this.kingschatId,
+                phone: this.phone
             });
-            this.userName = response.data.user_name;
-            this.maskedPhone = response.data.masked_phone;
-            this.hasPassword = response.data.has_password;
+
+            this.temporaryPassword = response.data.temporary_password;
+            this.tempPasswordExpiry = response.data.expires_at;
             this.step = 2;
         } catch (e) {
             if (e.response?.status === 422) {
                 const errors = e.response.data.errors;
-                this.error = errors?.kingschat_id?.[0] || 'Verification failed.';
+                this.error = errors?.kingschat_id?.[0] || errors?.phone?.[0] || 'Verification failed.';
+            } else if (e.response?.status === 404) {
+                this.error = 'User not found.';
+            } else if (e.response?.status === 401) {
+                this.error = 'Phone verification failed.';
             } else {
                 this.error = 'Something went wrong. Please try again.';
             }
         } finally {
-            this.loading = false;
-        }
-    },
-
-    async login() {
-        this.error = '';
-
-        if (this.hasPassword && !this.password.trim()) {
-            this.error = 'Please enter your password.';
-            return;
-        }
-
-        if (!this.hasPassword && !this.phone.trim()) {
-            this.error = 'Please enter your phone number.';
-            return;
-        }
-
-        this.loading = true;
-        try {
-            const payload = {
-                kingschat_id: this.kingschatId,
-                remember: this.remember
-            };
-
-            if (this.hasPassword) {
-                payload.password = this.password;
-            } else {
-                payload.phone = this.phone;
-            }
-
-            const response = await window.axios.post('{{ route('login') }}', payload);
-
-            if (response.data.requires_password_setup) {
-                // First-time login - temporary password returned from backend
-                this.temporaryPassword = response.data.temporary_password;
-                this.tempPasswordExpiry = response.data.expires_at;
-
-                // Update CSRF token after session regeneration
-                if (response.data.csrf_token) {
-                    document.querySelector('meta[name=&quot;csrf-token&quot;]').setAttribute('content', response.data.csrf_token);
-                    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = response.data.csrf_token;
-                }
-
-                this.step = 3;
-                this.loading = false;
-            } else {
-                window.location.href = response.data.redirect;
-            }
-        } catch (e) {
-            if (e.response?.status === 422) {
-                const errors = e.response.data.errors;
-                this.error = errors?.kingschat_id?.[0] || errors?.phone?.[0] || errors?.password?.[0] || 'Login failed.';
-            } else {
-                this.error = 'Something went wrong. Please try again.';
-            }
             this.loading = false;
         }
     },
@@ -113,11 +63,11 @@
     },
 
     confirmPasswordCopied() {
-        this.step = 4;
+        this.step = 3;
         this.error = '';
     },
 
-    async setupNewPassword() {
+    async resetPassword() {
         this.error = '';
 
         if (!this.temporaryPassword.trim()) {
@@ -137,36 +87,42 @@
 
         this.loading = true;
         try {
-            await window.axios.post('{{ route('password.setup') }}', {
-                temporary_password: this.temporaryPassword,
+            // First login with kingschat_id + temp password (we need to be authenticated to change password)
+            const loginResponse = await window.axios.post('{{ route('login') }}', {
+                kingschat_id: this.kingschatId,
+                password: this.temporaryPassword
+            });
+
+            // Update CSRF token after session regeneration
+            if (loginResponse.data.csrf_token) {
+                document.querySelector('meta[name=&quot;csrf-token&quot;]').setAttribute('content', loginResponse.data.csrf_token);
+                window.axios.defaults.headers.common['X-CSRF-TOKEN'] = loginResponse.data.csrf_token;
+            }
+
+            // Now change password
+            await window.axios.post('{{ route('password.change') }}', {
+                current_password: this.temporaryPassword,
                 new_password: this.newPassword,
                 new_password_confirmation: this.newPasswordConfirmation
             });
 
             // Redirect to login
-            window.location.href = '{{ route('login') }}?message=Password set successfully. Please login.';
+            window.location.href = '{{ route('login') }}?message=Password reset successfully. Please login.';
         } catch (e) {
             if (e.response?.status === 422) {
                 const errors = e.response.data.errors;
-                this.error = errors?.temporary_password?.[0] || errors?.new_password?.[0] || 'Failed to set password.';
+                this.error = errors?.temporary_password?.[0] || errors?.current_password?.[0] || errors?.new_password?.[0] || 'Failed to reset password.';
             } else {
                 this.error = 'Something went wrong. Please try again.';
             }
             this.loading = false;
         }
-    },
-
-    goBack() {
-        this.step = 1;
-        this.phone = '';
-        this.password = '';
-        this.error = '';
     }
 }">
-    {{-- Step 1: KingsChat ID --}}
+    {{-- Step 1: Request password reset --}}
     <div x-show="step === 1" x-transition>
-        <h2 class="text-lg font-semibold text-gray-900 mb-1">Sign in</h2>
-        <p class="text-sm text-gray-500 mb-6">Enter your KingsChat ID to continue.</p>
+        <h2 class="text-lg font-semibold text-gray-900 mb-1">Forgot Password</h2>
+        <p class="text-sm text-gray-500 mb-6">Enter your KingsChat ID and last 4 digits of your phone number.</p>
 
         {{-- Error message --}}
         <div x-show="error" x-transition x-cloak class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200">
@@ -180,134 +136,57 @@
                     type="text"
                     id="kingschat_id"
                     x-model="kingschatId"
-                    @keydown.enter="verifyKingsChatId()"
                     class="input"
                     placeholder="Enter your KingsChat ID"
-                    autocomplete="username"
                     autofocus
                 >
             </div>
 
-            <button
-                @click="verifyKingsChatId()"
-                :disabled="loading"
-                class="btn btn-primary w-full"
-            >
-                <span x-show="!loading">Continue</span>
-                <span x-show="loading" class="flex items-center gap-2">
-                    <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                    </svg>
-                    Verifying...
-                </span>
-            </button>
-        </div>
-    </div>
-
-    {{-- Step 2: Phone or Password verification --}}
-    <div x-show="step === 2" x-transition x-cloak>
-        <h2 class="text-lg font-semibold text-gray-900 mb-1">
-            Welcome, <span x-text="userName"></span>!
-        </h2>
-        <p class="text-sm text-gray-500 mb-6" x-show="!hasPassword">
-            Your phone number ending in <span class="font-medium text-gray-700" x-text="maskedPhone"></span>
-        </p>
-
-        {{-- Error message --}}
-        <div x-show="error" x-transition x-cloak class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200">
-            <p class="text-sm text-red-700" x-text="error"></p>
-        </div>
-
-        <div class="space-y-4">
-            {{-- Password input if user has password --}}
-            <div x-show="hasPassword">
-                <label for="password" class="label">Password</label>
-                <div class="relative">
-                    <input
-                        :type="showPassword ? 'text' : 'password'"
-                        id="password"
-                        x-model="password"
-                        @keydown.enter="login()"
-                        class="input pr-10"
-                        placeholder="Enter your password"
-                        autocomplete="current-password"
-                    >
-                    <button
-                        type="button"
-                        @click="showPassword = !showPassword"
-                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
-                    >
-                        <svg x-show="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                        <svg x-show="showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-cloak>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
-                        </svg>
-                    </button>
-                </div>
-                <a href="{{ route('password.forgot') }}" class="text-sm text-primary-600 hover:text-primary-700 mt-2 inline-block">
-                    Forgot password?
-                </a>
-            </div>
-
-            {{-- Phone input if user doesn't have password (first-time) --}}
-            <div x-show="!hasPassword">
-                <label for="phone" class="label">Phone Number</label>
+            <div>
+                <label for="phone" class="label">Last 4 Digits of Phone Number</label>
                 <input
-                    type="tel"
+                    type="text"
                     id="phone"
                     x-model="phone"
-                    @keydown.enter="login()"
+                    @keydown.enter="requestReset()"
                     class="input"
-                    placeholder="Enter your full phone number"
-                    autocomplete="tel"
+                    placeholder="Enter last 4 digits"
+                    maxlength="4"
+                    pattern="[0-9]{4}"
                 >
-            </div>
-
-            <div class="flex items-center gap-2">
-                <input
-                    type="checkbox"
-                    id="remember"
-                    x-model="remember"
-                    class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                >
-                <label for="remember" class="text-sm text-gray-600">Remember me</label>
+                <p class="text-xs text-gray-500 mt-1">
+                    For security, please enter the last 4 digits of your registered phone number.
+                </p>
             </div>
 
             <button
-                @click="login()"
+                @click="requestReset()"
                 :disabled="loading"
                 class="btn btn-primary w-full"
             >
-                <span x-show="!loading">Login</span>
+                <span x-show="!loading">Request Password Reset</span>
                 <span x-show="loading" class="flex items-center gap-2">
                     <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                     </svg>
-                    Logging in...
+                    Processing...
                 </span>
             </button>
 
-            <button
-                @click="goBack()"
-                type="button"
-                class="w-full text-center text-sm text-gray-500 hover:text-gray-700"
-            >
-                &larr; Back
-            </button>
+            <a href="{{ route('login') }}" class="block w-full text-center text-sm text-gray-500 hover:text-gray-700">
+                &larr; Back to Login
+            </a>
         </div>
     </div>
 
-    {{-- Step 3: Temporary Password Display --}}
-    <div x-show="step === 3" x-transition x-cloak>
+    {{-- Step 2: Temporary Password Display --}}
+    <div x-show="step === 2" x-transition x-cloak>
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Your Temporary Password</h2>
 
         <div class="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mb-4">
             <p class="text-sm text-yellow-800 mb-3 font-medium">
-                Please copy this password. You'll need it to set your permanent password.
+                Please copy this password. You'll use it to set your new password.
             </p>
             <div class="flex items-center gap-3 bg-gray-900 rounded-lg px-4 py-4 border-2 border-gray-700">
                 <span x-text="temporaryPassword" class="flex-1 font-mono text-2xl font-bold text-yellow-400 tracking-wider select-all"></span>
@@ -340,9 +219,9 @@
         </button>
     </div>
 
-    {{-- Step 4: Change Password Screen --}}
-    <div x-show="step === 4" x-transition x-cloak>
-        <h2 class="text-lg font-semibold text-gray-900 mb-1">Set Your Password</h2>
+    {{-- Step 3: Set New Password --}}
+    <div x-show="step === 3" x-transition x-cloak>
+        <h2 class="text-lg font-semibold text-gray-900 mb-1">Set New Password</h2>
         <p class="text-sm text-gray-500 mb-6">Create a secure password for your account.</p>
 
         {{-- Error message --}}
@@ -415,7 +294,7 @@
                         :type="showNewPasswordConfirmation ? 'text' : 'password'"
                         id="new_password_confirmation"
                         x-model="newPasswordConfirmation"
-                        @keydown.enter="setupNewPassword()"
+                        @keydown.enter="resetPassword()"
                         class="input pr-10"
                         placeholder="Confirm new password"
                         autocomplete="new-password"
@@ -437,17 +316,17 @@
             </div>
 
             <button
-                @click="setupNewPassword()"
+                @click="resetPassword()"
                 :disabled="loading"
                 class="btn btn-primary w-full"
             >
-                <span x-show="!loading">Set Password & Login</span>
+                <span x-show="!loading">Reset Password</span>
                 <span x-show="loading" class="flex items-center gap-2">
                     <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                     </svg>
-                    Setting password...
+                    Resetting password...
                 </span>
             </button>
         </div>

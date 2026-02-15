@@ -39,6 +39,10 @@ class ActivityLog extends Model
     const ACTION_VIEW = 'view';
     const ACTION_DOWNLOAD = 'download';
     const ACTION_UPLOAD = 'upload';
+    const ACTION_PASSWORD_RESET_REQUESTED = 'password_reset_requested';
+    const ACTION_PASSWORD_CHANGED = 'password_changed';
+    const ACTION_PASSWORD_SET = 'password_set';
+    const ACTION_TEMPORARY_PASSWORD_GENERATED = 'temporary_password_generated';
 
     // Relationships
     public function user(): BelongsTo
@@ -90,6 +94,10 @@ class ActivityLog extends Model
             self::ACTION_VIEW => 'Viewed',
             self::ACTION_DOWNLOAD => 'Downloaded',
             self::ACTION_UPLOAD => 'Uploaded',
+            self::ACTION_PASSWORD_RESET_REQUESTED => 'Requested password reset',
+            self::ACTION_PASSWORD_CHANGED => 'Changed password',
+            self::ACTION_PASSWORD_SET => 'Set password',
+            self::ACTION_TEMPORARY_PASSWORD_GENERATED => 'Temporary password generated',
             default => ucfirst($this->action),
         };
     }
@@ -105,6 +113,10 @@ class ActivityLog extends Model
             self::ACTION_VIEW => 'eye',
             self::ACTION_DOWNLOAD => 'arrow-down-tray',
             self::ACTION_UPLOAD => 'arrow-up-tray',
+            self::ACTION_PASSWORD_RESET_REQUESTED => 'key',
+            self::ACTION_PASSWORD_CHANGED => 'key',
+            self::ACTION_PASSWORD_SET => 'key',
+            self::ACTION_TEMPORARY_PASSWORD_GENERATED => 'key',
             default => 'information-circle',
         };
     }
@@ -120,6 +132,10 @@ class ActivityLog extends Model
             self::ACTION_VIEW => 'gray',
             self::ACTION_DOWNLOAD => 'purple',
             self::ACTION_UPLOAD => 'indigo',
+            self::ACTION_PASSWORD_RESET_REQUESTED => 'orange',
+            self::ACTION_PASSWORD_CHANGED => 'green',
+            self::ACTION_PASSWORD_SET => 'blue',
+            self::ACTION_TEMPORARY_PASSWORD_GENERATED => 'yellow',
             default => 'gray',
         };
     }

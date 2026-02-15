@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Resources\AuthUserResource;
+use App\Models\ActivityLog;
 use App\Models\User;
+use App\Rules\StrongPassword;
+use App\Services\PasswordService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use OpenApi\Attributes as OA;
 
@@ -70,6 +74,7 @@ class AuthController extends ApiController
         }
 
         return $this->successResponse([
+            'has_password' => $user->hasPassword(),
             'masked_phone' => $user->masked_phone,
             'user_name' => $user->first_name,
         ]);
@@ -127,16 +132,6 @@ class AuthController extends ApiController
     )]
     public function login(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'kingschat_id' => 'required|string|max:255',
-            'phone' => 'required|string|size:4',
-            'device_name' => 'nullable|string|max:255',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationErrorResponse($validator->errors()->toArray());
-        }
-
         $user = User::where('kingschat_id', $request->kingschat_id)
             ->active()
             ->first();
@@ -145,14 +140,44 @@ class AuthController extends ApiController
             return $this->notFoundResponse('User not found or inactive');
         }
 
-        // Validate phone matches last 4 digits
-        $phoneLast4 = substr($user->phone, -4);
-        if ($request->phone !== $phoneLast4) {
-            return $this->unauthorizedResponse('Phone verification failed');
+        // Password-based login
+        if ($user->hasPassword()) {
+            $validator = Validator::make($request->all(), [
+                'kingschat_id' => 'required|string',
+                'password' => 'required|string',
+                'device_name' => 'nullable|string|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                return $this->validationErrorResponse($validator->errors()->toArray());
+            }
+
+            if (!Hash::check($request->password, $user->password)) {
+                return $this->unauthorizedResponse('The password is incorrect');
+            }
+        } else {
+            // Legacy phone-based login (first-time flow)
+            $validator = Validator::make($request->all(), [
+                'kingschat_id' => 'required|string',
+                'phone' => 'required|string|size:4',
+                'device_name' => 'nullable|string|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                return $this->validationErrorResponse($validator->errors()->toArray());
+            }
+
+            $phoneLast4 = substr($user->phone, -4);
+            if ($request->phone !== $phoneLast4) {
+                return $this->unauthorizedResponse('Phone verification failed');
+            }
         }
 
         // Update last login timestamp
         $user->update(['last_login_at' => now()]);
+
+        // Log activity
+        ActivityLog::log(ActivityLog::ACTION_LOGIN);
 
         // Load relationships for response
         $user->load(['department', 'roles', 'permissions']);
@@ -167,6 +192,7 @@ class AuthController extends ApiController
 
             return $this->successResponse([
                 'user' => new AuthUserResource($user),
+                'requires_password_setup' => !$user->hasPassword(),
             ], 'Login successful');
         }
 
@@ -177,6 +203,7 @@ class AuthController extends ApiController
         return $this->successResponse([
             'token' => $token,
             'user' => new AuthUserResource($user),
+            'requires_password_setup' => !$user->hasPassword(),
         ], 'Login successful');
     }
 
@@ -350,5 +377,122 @@ class AuthController extends ApiController
         return $this->successResponse([
             'user' => new AuthUserResource($user),
         ], 'Profile updated successfully');
+    }
+
+    public function generateTemporaryPassword(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return $this->unauthorizedResponse();
+        }
+
+        $passwordService = app(PasswordService::class);
+        $tempPassword = $passwordService->generateTemporaryPassword($user);
+
+        ActivityLog::log(ActivityLog::ACTION_TEMPORARY_PASSWORD_GENERATED, $user);
+
+        return $this->successResponse([
+            'temporary_password' => $tempPassword['password'],
+            'expires_at' => $tempPassword['expires_at']->toIso8601String(),
+        ], 'Temporary password generated successfully');
+    }
+
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'kingschat_id' => 'required|string',
+            'phone' => 'required|string|size:4',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationErrorResponse($validator->errors()->toArray());
+        }
+
+        $user = User::where('kingschat_id', $request->kingschat_id)->active()->first();
+
+        if (!$user) {
+            return $this->notFoundResponse('User not found');
+        }
+
+        // Verify last 4 digits of phone
+        if (substr($user->phone, -4) !== $request->phone) {
+            return $this->unauthorizedResponse('Phone verification failed');
+        }
+
+        $passwordService = app(PasswordService::class);
+        $tempPassword = $passwordService->generateTemporaryPassword($user);
+
+        ActivityLog::log(ActivityLog::ACTION_PASSWORD_RESET_REQUESTED, $user);
+
+        return $this->successResponse([
+            'temporary_password' => $tempPassword['password'],
+            'expires_at' => $tempPassword['expires_at']->toIso8601String(),
+        ], 'Temporary password generated successfully');
+    }
+
+    public function setupPassword(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'temporary_password' => 'required|string',
+            'new_password' => ['required', 'string', 'confirmed', new StrongPassword()],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationErrorResponse($validator->errors()->toArray());
+        }
+
+        $user = $request->user();
+
+        if (!$user) {
+            return $this->unauthorizedResponse();
+        }
+
+        $passwordService = app(PasswordService::class);
+
+        // Verify temporary password
+        if (!$passwordService->verifyTemporaryPassword($user, $request->temporary_password)) {
+            return $this->unauthorizedResponse('Invalid or expired temporary password');
+        }
+
+        $passwordService->changePassword($user, $request->new_password);
+
+        ActivityLog::log(ActivityLog::ACTION_PASSWORD_SET, $user);
+
+        return $this->successResponse(null, 'Password set successfully');
+    }
+
+    public function changePassword(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'new_password' => ['required', 'string', 'confirmed', new StrongPassword()],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationErrorResponse($validator->errors()->toArray());
+        }
+
+        $user = $request->user();
+
+        if (!$user) {
+            return $this->unauthorizedResponse();
+        }
+
+        $passwordService = app(PasswordService::class);
+
+        // Verify current password (could be temp or regular)
+        $isValid = Hash::check($request->current_password, $user->password) ||
+                   $passwordService->verifyTemporaryPassword($user, $request->current_password);
+
+        if (!$isValid) {
+            return $this->unauthorizedResponse('Current password is incorrect');
+        }
+
+        $passwordService->changePassword($user, $request->new_password);
+
+        ActivityLog::log(ActivityLog::ACTION_PASSWORD_CHANGED, $user);
+
+        return $this->successResponse(null, 'Password changed successfully');
     }
 }

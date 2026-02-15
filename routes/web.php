@@ -21,6 +21,19 @@ Route::post('login', [LoginController::class, 'login']);
 Route::post('logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 Route::get('logout', [LoginController::class, 'logout'])->middleware('auth'); // Fallback for GET requests
 
+// ─── Password Management ─────────────────────────────────────────────
+Route::get('forgot-password', [LoginController::class, 'showForgotPassword'])->name('password.forgot');
+Route::post('forgot-password', [LoginController::class, 'forgotPassword']);
+
+// Password management (authenticated users)
+Route::middleware('auth')->group(function () {
+    Route::post('generate-temporary-password', [LoginController::class, 'generateTemporaryPassword']);
+    Route::get('setup-password', [LoginController::class, 'showSetupPassword'])->name('password.setup');
+    Route::post('setup-password', [LoginController::class, 'setupPassword']);
+    Route::get('change-password', [LoginController::class, 'showChangePassword'])->name('password.change');
+    Route::post('change-password', [LoginController::class, 'changePassword']);
+});
+
 // ─── Admin Routes ────────────────────────────────────────────────────
 Route::prefix('admin')
     ->middleware(['auth', 'role:super_admin,admin,head_of_operations'])

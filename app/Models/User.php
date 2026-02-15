@@ -24,6 +24,8 @@ class User extends Authenticatable implements HasMedia
         'last_name',
         'email',
         'phone',
+        'password',
+        'password_set',
         'department_id',
         'profile_photo',
         'is_active',
@@ -33,13 +35,16 @@ class User extends Authenticatable implements HasMedia
     protected $hidden = [
         'remember_token',
         'phone',
+        'password',
     ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'password_set' => 'boolean',
             'last_login_at' => 'datetime',
+            'password' => 'hashed',
         ];
     }
 
@@ -123,6 +128,11 @@ class User extends Authenticatable implements HasMedia
     }
 
     // Helper Methods
+    public function hasPassword(): bool
+    {
+        return $this->password_set && !empty($this->password);
+    }
+
     public function isHOD(): bool
     {
         return $this->hasRole('hod') || $this->headOfDepartment()->exists();
