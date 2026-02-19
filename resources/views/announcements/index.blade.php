@@ -46,7 +46,7 @@
                     <div class="px-6 py-4">
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-1">
+                                <div class="flex items-center gap-2 mb-1 flex-wrap">
                                     @if($announcement->is_pinned)
                                         <svg class="w-4 h-4 text-primary-500 shrink-0" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/>
@@ -55,10 +55,19 @@
                                     <h3 class="text-base font-semibold text-gray-900 truncate {{ !$announcement->isReadBy($user) ? '' : 'text-gray-600' }}">
                                         {{ $announcement->title }}
                                     </h3>
+                                    @if($announcement->announcement_type === 'video_upload')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 shrink-0">Video</span>
+                                    @elseif($announcement->announcement_type === 'audio_upload')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700 shrink-0">Audio</span>
+                                    @elseif(in_array($announcement->announcement_type, ['youtube', 'vimeo']))
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 shrink-0">Video</span>
+                                    @elseif($announcement->announcement_type === 'livestream')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-500 text-white animate-pulse shrink-0">&#9679; LIVE</span>
+                                    @endif
                                 </div>
 
                                 <p class="text-sm text-gray-500 line-clamp-2 mb-3">
-                                    {{ Str::limit(strip_tags($announcement->content), 150) }}
+                                    {{ $announcement->content ? Str::limit(strip_tags($announcement->content), 150) : ($announcement->media_title ?? $announcement->title) }}
                                 </p>
 
                                 <div class="flex items-center gap-3 text-xs text-gray-400">

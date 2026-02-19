@@ -57,7 +57,7 @@
             </x-empty-state>
         </x-card>
     @else
-        <x-data-table :headers="['title' => 'Title', 'priority' => 'Priority', 'target' => 'Target', 'status' => 'Status', 'created_by' => 'Created By', 'date' => 'Date', 'actions' => '']">
+        <x-data-table :headers="['title' => 'Title', 'priority' => 'Priority', 'type' => 'Type', 'target' => 'Target', 'status' => 'Status', 'created_by' => 'Created By', 'date' => 'Date', 'actions' => '']">
             @foreach($announcements as $announcement)
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-3">
@@ -74,6 +74,26 @@
                     </td>
                     <td class="px-6 py-3">
                         <span class="badge {{ $announcement->getPriorityBadgeClass() }}">{{ ucfirst($announcement->priority) }}</span>
+                    </td>
+                    <td class="px-6 py-3 whitespace-nowrap">
+                        @if($announcement->announcement_type === 'text')
+                            <span class="text-sm text-gray-500">Text</span>
+                        @elseif($announcement->announcement_type === 'video_upload')
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">Video</span>
+                        @elseif($announcement->announcement_type === 'audio_upload')
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">Audio</span>
+                        @elseif($announcement->announcement_type === 'youtube')
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">YouTube</span>
+                        @elseif($announcement->announcement_type === 'vimeo')
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">Vimeo</span>
+                        @elseif($announcement->announcement_type === 'livestream')
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-red-500 text-white">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                Live Stream
+                            </span>
+                        @else
+                            <span class="text-sm text-gray-500">{{ ucfirst($announcement->announcement_type) }}</span>
+                        @endif
                     </td>
                     <td class="px-6 py-3 text-sm text-gray-500">
                         @if($announcement->target_type === 'all')
