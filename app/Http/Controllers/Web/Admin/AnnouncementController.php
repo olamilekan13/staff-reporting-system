@@ -72,10 +72,15 @@ class AnnouncementController extends Controller
             $data['content'] = strip_tags($data['content'], self::ALLOWED_HTML_TAGS);
         }
 
-        $data['is_pinned']  = $request->boolean('is_pinned');
-        $data['media_file'] = $request->file('media_file');
+        $data['is_pinned'] = $request->boolean('is_pinned');
 
-        $this->announcementService->createAnnouncement(Auth::user(), $data);
+        $announcement = $this->announcementService->createAnnouncement(Auth::user(), $data);
+
+        if ($request->hasFile('media_file') &&
+            in_array($data['announcement_type'], ['video_upload', 'audio_upload'])) {
+            $announcement->addMediaFromRequest('media_file')
+                ->toMediaCollection('announcement_media');
+        }
 
         return redirect()->route('admin.announcements.index')
             ->with('success', 'Announcement created successfully.');
@@ -129,10 +134,16 @@ class AnnouncementController extends Controller
             $data['content'] = strip_tags($data['content'], self::ALLOWED_HTML_TAGS);
         }
 
-        $data['is_pinned']  = $request->boolean('is_pinned');
-        $data['media_file'] = $request->file('media_file');
+        $data['is_pinned'] = $request->boolean('is_pinned');
 
         $this->announcementService->updateAnnouncement($announcement, $data);
+
+        if ($request->hasFile('media_file') &&
+            in_array($data['announcement_type'], ['video_upload', 'audio_upload'])) {
+            $announcement->clearMediaCollection('announcement_media');
+            $announcement->addMediaFromRequest('media_file')
+                ->toMediaCollection('announcement_media');
+        }
 
         return redirect()->route('admin.announcements.index')
             ->with('success', 'Announcement updated successfully.');

@@ -104,11 +104,6 @@ class AnnouncementService
             'expires_at'        => $data['expires_at'] ?? null,
         ]);
 
-        if (!empty($data['media_file'])) {
-            $announcement->addMedia($data['media_file'])
-                ->toMediaCollection('announcement_media');
-        }
-
         // Attach targets based on target_type
         $this->attachTargets($announcement, $data);
 
@@ -142,12 +137,6 @@ class AnnouncementService
             'starts_at'         => array_key_exists('starts_at', $data) ? $data['starts_at'] : $announcement->starts_at,
             'expires_at'        => array_key_exists('expires_at', $data) ? $data['expires_at'] : $announcement->expires_at,
         ]);
-
-        // Replace uploaded file if a new one was provided
-        if (!empty($data['media_file'])) {
-            $announcement->addMedia($data['media_file'])
-                ->toMediaCollection('announcement_media');
-        }
 
         // Update targets if target_type changed or new targets provided
         if (isset($data['target_type']) || isset($data['user_ids']) || isset($data['department_ids'])) {

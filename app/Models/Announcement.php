@@ -266,7 +266,11 @@ class Announcement extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('announcement_media')
-            ->singleFile();
+            ->singleFile()
+            ->acceptsMimeTypes([
+                'video/mp4', 'video/webm', 'video/quicktime',
+                'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg',
+            ]);
     }
 
     public function getMediaType(): string
