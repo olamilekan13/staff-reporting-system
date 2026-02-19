@@ -29,6 +29,9 @@ class Announcement extends Model
     protected $fillable = [
         'title',
         'content',
+        'announcement_type',
+        'media_url',
+        'media_title',
         'created_by',
         'priority',
         'target_type',
@@ -56,6 +59,13 @@ class Announcement extends Model
     const TARGET_DEPARTMENTS = 'departments';
     const TARGET_USERS = 'users';
     const TARGET_ROLES = 'roles';
+
+    const TYPE_TEXT = 'text';
+    const TYPE_VIDEO_UPLOAD = 'video_upload';
+    const TYPE_AUDIO_UPLOAD = 'audio_upload';
+    const TYPE_YOUTUBE = 'youtube';
+    const TYPE_VIMEO = 'vimeo';
+    const TYPE_LIVESTREAM = 'livestream';
 
     // Relationships
     public function creator(): BelongsTo
@@ -179,5 +189,85 @@ class Announcement extends Model
             ->wherePivot('user_id', $user->id)
             ->wherePivotNotNull('read_at')
             ->exists();
+    }
+
+    // Media Helper Methods
+
+    public function isYouTube(): bool
+    {
+        return str_contains((string) $this->media_url, 'youtube.com')
+            || str_contains((string) $this->media_url, 'youtu.be');
+    }
+
+    public function isVimeo(): bool
+    {
+        return str_contains((string) $this->media_url, 'vimeo.com');
+    }
+
+    public function isLivestream(): bool
+    {
+        return $this->announcement_type === self::TYPE_LIVESTREAM;
+    }
+
+    public function hasMedia(): bool
+    {
+        return $this->announcement_type !== self::TYPE_TEXT;
+    }
+
+    public function getYouTubeEmbedUrl(): ?string
+    {
+        if (! $this->media_url || ! $this->isYouTube()) {
+            return null;
+        }
+
+        $parsed = parse_url($this->media_url);
+
+        // youtu.be/VIDEO_ID
+        if (isset($parsed['host']) && str_contains($parsed['host'], 'youtu.be')) {
+            $videoId = ltrim($parsed['path'] ?? '', '/');
+        } else {
+            // youtube.com/watch?v=VIDEO_ID
+            parse_str($parsed['query'] ?? '', $query);
+            $videoId = $query['v'] ?? null;
+        }
+
+        if (! $videoId) {
+            return null;
+        }
+
+        return 'https://www.youtube.com/embed/' . $videoId . '?rel=0&modestbranding=1';
+    }
+
+    public function getVimeoEmbedUrl(): ?string
+    {
+        if (! $this->media_url || ! $this->isVimeo()) {
+            return null;
+        }
+
+        $parsed = parse_url($this->media_url);
+        $videoId = ltrim($parsed['path'] ?? '', '/');
+
+        // Accept only numeric Vimeo IDs (e.g. vimeo.com/123456789)
+        if (! $videoId || ! ctype_digit($videoId)) {
+            return null;
+        }
+
+        return 'https://player.vimeo.com/video/' . $videoId;
+    }
+
+    public function getUploadedMediaUrl(): ?string
+    {
+        // HasMedia not yet implemented on this model — deferred to a future step
+        return null;
+    }
+
+    public function getMediaType(): string
+    {
+        return match ($this->announcement_type) {
+            self::TYPE_VIDEO_UPLOAD, self::TYPE_YOUTUBE, self::TYPE_VIMEO => 'video',
+            self::TYPE_AUDIO_UPLOAD => 'audio',
+            self::TYPE_LIVESTREAM => 'livestream',
+            default => 'text',
+        };
     }
 }
