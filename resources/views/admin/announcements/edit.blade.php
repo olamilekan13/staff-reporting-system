@@ -13,17 +13,123 @@
         </a>
 
         <x-card title="Edit Announcement">
-            <form method="POST" action="{{ route('admin.announcements.update', $announcement) }}" x-data="announcementForm()" id="announcement-form">
+            <form method="POST" action="{{ route('admin.announcements.update', $announcement) }}"
+                  enctype="multipart/form-data"
+                  x-data="announcementForm()" id="announcement-form">
                 @csrf
                 @method('PUT')
 
                 <div class="space-y-5">
+                    {{-- Announcement Type --}}
+                    <div>
+                        <label for="announcement_type" class="label">
+                            Announcement Type <span class="text-red-500">*</span>
+                        </label>
+                        <select name="announcement_type" id="announcement_type" x-model="announcementType" required
+                            class="input @error('announcement_type') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror">
+                            <option value="text">Text / General</option>
+                            <option value="video_upload">Upload Video File</option>
+                            <option value="audio_upload">Upload Audio File</option>
+                            <option value="youtube">YouTube Video</option>
+                            <option value="vimeo">Vimeo Video</option>
+                            <option value="livestream">Live Stream (Owncast)</option>
+                        </select>
+                        @error('announcement_type')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <x-input name="title" label="Title" :value="old('title', $announcement->title)" :error="$errors->first('title')" required placeholder="Enter announcement title" />
+
+                    {{-- Video / Audio file upload --}}
+                    <div x-show="announcementType === 'video_upload' || announcementType === 'audio_upload'" x-transition>
+                        {{-- Current media preview --}}
+                        @if($announcement->hasMedia('announcement_media') && in_array($announcement->announcement_type, ['video_upload', 'audio_upload']))
+                            <div class="mb-3">
+                                <p class="text-sm font-medium text-gray-700 mb-2">Current Media</p>
+                                <x-media-player :announcement="$announcement" class="mb-2" />
+                                <p class="text-xs text-gray-500">Upload a new file below to replace it, or leave blank to keep the current one.</p>
+                            </div>
+                        @endif
+
+                        <label class="label">
+                            <span x-text="announcementType === 'audio_upload' ? 'Audio File' : 'Video File'"></span>
+                            @if(!$announcement->hasMedia('announcement_media'))
+                                <span class="text-red-500">*</span>
+                            @else
+                                <span class="text-xs text-gray-400">(optional — replace only)</span>
+                            @endif
+                        </label>
+                        <input type="file" name="media_file"
+                            :accept="announcementType === 'audio_upload' ? 'audio/mpeg,audio/wav,audio/ogg,audio/mp3' : 'video/mp4,video/webm,video/quicktime'"
+                            class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100">
+                        <p class="text-xs text-gray-500 mt-1">Max 500 MB. For longer videos, use YouTube or Vimeo instead.</p>
+                        @error('media_file')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- YouTube URL --}}
+                    <div x-show="announcementType === 'youtube'" x-transition>
+                        <label class="label">YouTube URL <span class="text-red-500">*</span></label>
+                        <input type="url" name="media_url"
+                            placeholder="https://www.youtube.com/watch?v=..."
+                            class="input @error('media_url') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
+                            value="{{ old('media_url', $announcement->media_url) }}">
+                        @error('media_url')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Vimeo URL --}}
+                    <div x-show="announcementType === 'vimeo'" x-transition>
+                        <label class="label">Vimeo URL <span class="text-red-500">*</span></label>
+                        <input type="url" name="media_url"
+                            placeholder="https://vimeo.com/123456789"
+                            class="input @error('media_url') border-red-300 focus:ring-red-500 focus:border-red-500 @enderror"
+                            value="{{ old('media_url', $announcement->media_url) }}">
+                        @error('media_url')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Livestream info --}}
+                    <div x-show="announcementType === 'livestream'" x-transition>
+                        <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <p class="text-sm font-medium text-blue-800">Owncast Live Stream</p>
+                            <p class="text-sm text-blue-600 mt-1">
+                                Your Owncast server: <code class="font-mono text-xs bg-blue-100 px-1 py-0.5 rounded">{{ config('services.owncast.url') }}</code>
+                            </p>
+                            <p class="text-sm text-blue-600 mt-1">
+                                When staff open this announcement, they'll see the live stream player embedded.
+                            </p>
+                            <div class="mt-3"
+                                 x-data="{ status: 'checking' }"
+                                 x-init="fetch('{{ route('stream.status') }}').then(r => r.json()).then(d => status = d.is_live ? 'live' : 'offline').catch(() => status = 'error')">
+                                <span x-show="status === 'live'" class="text-green-600 text-sm font-semibold">&#9679; Stream is currently LIVE</span>
+                                <span x-show="status === 'offline'" class="text-gray-500 text-sm">&#9675; Stream is currently offline</span>
+                                <span x-show="status === 'checking'" class="text-gray-400 text-sm">Checking stream status&hellip;</span>
+                                <span x-show="status === 'error'" class="text-red-500 text-sm">Could not reach stream server</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Media title (optional, for embedded / livestream types) --}}
+                    <div x-show="['youtube','vimeo','livestream'].includes(announcementType)" x-transition>
+                        <label class="label">Media Title <span class="text-xs text-gray-400">(optional)</span></label>
+                        <input type="text" name="media_title"
+                            placeholder="Leave blank to use the announcement title"
+                            class="input"
+                            value="{{ old('media_title', $announcement->media_title) }}">
+                        @error('media_title')
+                            <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
 
                     {{-- Content (CKEditor) --}}
                     <div>
                         <label for="content" class="label">
-                            Content <span class="text-red-500">*</span>
+                            <span x-text="announcementType === 'text' ? 'Content *' : 'Additional Notes (optional)'">Content</span>
                         </label>
                         <textarea name="content" id="content">{{ old('content', $announcement->content) }}</textarea>
                         @error('content')
@@ -128,6 +234,8 @@
     function announcementForm() {
         return {
             targetType: '{{ old('target_type', $announcement->target_type) }}',
+            announcementType: '{{ old('announcement_type', $announcement->announcement_type) }}',
+            mediaUrl: '{{ old('media_url', $announcement->media_url) }}',
             userSearch: '',
         }
     }

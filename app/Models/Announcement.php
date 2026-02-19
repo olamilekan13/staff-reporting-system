@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Announcement extends Model
+class Announcement extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, InteractsWithMedia;
 
     /**
      * Boot the model.
@@ -257,8 +259,14 @@ class Announcement extends Model
 
     public function getUploadedMediaUrl(): ?string
     {
-        // HasMedia not yet implemented on this model — deferred to a future step
-        return null;
+        return $this->getFirstMediaUrl('announcement_media') ?: null;
+    }
+
+    // Media Library
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('announcement_media')
+            ->singleFile();
     }
 
     public function getMediaType(): string

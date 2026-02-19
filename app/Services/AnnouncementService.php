@@ -91,15 +91,23 @@ class AnnouncementService
     public function createAnnouncement(User $creator, array $data): Announcement
     {
         $announcement = Announcement::create([
-            'title' => $data['title'],
-            'content' => $data['content'],
-            'created_by' => $creator->id,
-            'priority' => $data['priority'] ?? Announcement::PRIORITY_MEDIUM,
-            'target_type' => $data['target_type'] ?? Announcement::TARGET_ALL,
-            'is_pinned' => $data['is_pinned'] ?? false,
-            'starts_at' => $data['starts_at'] ?? null,
-            'expires_at' => $data['expires_at'] ?? null,
+            'title'             => $data['title'],
+            'content'           => $data['content'] ?? null,
+            'announcement_type' => $data['announcement_type'] ?? Announcement::TYPE_TEXT,
+            'media_url'         => $data['media_url'] ?? null,
+            'media_title'       => $data['media_title'] ?? null,
+            'created_by'        => $creator->id,
+            'priority'          => $data['priority'] ?? Announcement::PRIORITY_MEDIUM,
+            'target_type'       => $data['target_type'] ?? Announcement::TARGET_ALL,
+            'is_pinned'         => $data['is_pinned'] ?? false,
+            'starts_at'         => $data['starts_at'] ?? null,
+            'expires_at'        => $data['expires_at'] ?? null,
         ]);
+
+        if (!empty($data['media_file'])) {
+            $announcement->addMedia($data['media_file'])
+                ->toMediaCollection('announcement_media');
+        }
 
         // Attach targets based on target_type
         $this->attachTargets($announcement, $data);
@@ -118,18 +126,28 @@ class AnnouncementService
     public function updateAnnouncement(Announcement $announcement, array $data): Announcement
     {
         $oldValues = $announcement->only([
-            'title', 'content', 'priority', 'target_type', 'is_pinned', 'starts_at', 'expires_at'
+            'title', 'content', 'announcement_type', 'media_url', 'media_title',
+            'priority', 'target_type', 'is_pinned', 'starts_at', 'expires_at',
         ]);
 
         $announcement->update([
-            'title' => $data['title'] ?? $announcement->title,
-            'content' => $data['content'] ?? $announcement->content,
-            'priority' => $data['priority'] ?? $announcement->priority,
-            'target_type' => $data['target_type'] ?? $announcement->target_type,
-            'is_pinned' => $data['is_pinned'] ?? $announcement->is_pinned,
-            'starts_at' => array_key_exists('starts_at', $data) ? $data['starts_at'] : $announcement->starts_at,
-            'expires_at' => array_key_exists('expires_at', $data) ? $data['expires_at'] : $announcement->expires_at,
+            'title'             => $data['title'] ?? $announcement->title,
+            'content'           => $data['content'] ?? $announcement->content,
+            'announcement_type' => $data['announcement_type'] ?? $announcement->announcement_type,
+            'media_url'         => array_key_exists('media_url', $data) ? $data['media_url'] : $announcement->media_url,
+            'media_title'       => array_key_exists('media_title', $data) ? $data['media_title'] : $announcement->media_title,
+            'priority'          => $data['priority'] ?? $announcement->priority,
+            'target_type'       => $data['target_type'] ?? $announcement->target_type,
+            'is_pinned'         => $data['is_pinned'] ?? $announcement->is_pinned,
+            'starts_at'         => array_key_exists('starts_at', $data) ? $data['starts_at'] : $announcement->starts_at,
+            'expires_at'        => array_key_exists('expires_at', $data) ? $data['expires_at'] : $announcement->expires_at,
         ]);
+
+        // Replace uploaded file if a new one was provided
+        if (!empty($data['media_file'])) {
+            $announcement->addMedia($data['media_file'])
+                ->toMediaCollection('announcement_media');
+        }
 
         // Update targets if target_type changed or new targets provided
         if (isset($data['target_type']) || isset($data['user_ids']) || isset($data['department_ids'])) {
@@ -140,7 +158,10 @@ class AnnouncementService
             ActivityLog::ACTION_UPDATE,
             $announcement,
             $oldValues,
-            $announcement->only(['title', 'content', 'priority', 'target_type', 'is_pinned', 'starts_at', 'expires_at'])
+            $announcement->only([
+                'title', 'content', 'announcement_type', 'media_url', 'media_title',
+                'priority', 'target_type', 'is_pinned', 'starts_at', 'expires_at',
+            ])
         );
 
         return $announcement->fresh(['creator', 'departments', 'users']);

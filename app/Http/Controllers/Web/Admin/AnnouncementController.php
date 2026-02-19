@@ -45,17 +45,21 @@ class AnnouncementController extends Controller
         Gate::authorize('create', Announcement::class);
 
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'priority' => 'required|in:low,medium,high,urgent',
-            'target_type' => 'required|in:all,departments,users',
-            'department_ids' => 'required_if:target_type,departments|array',
-            'department_ids.*' => 'exists:departments,id',
-            'user_ids' => 'required_if:target_type,users|array',
-            'user_ids.*' => 'exists:users,id',
-            'is_pinned' => 'nullable|boolean',
-            'starts_at' => 'nullable|date',
-            'expires_at' => 'nullable|date|after_or_equal:starts_at',
+            'title'             => 'required|string|max:255',
+            'content'           => 'nullable|string',
+            'announcement_type' => 'required|in:text,video_upload,audio_upload,youtube,vimeo,livestream',
+            'media_file'        => 'required_if:announcement_type,video_upload,audio_upload|nullable|file|mimes:mp4,webm,mov,mp3,wav,ogg|max:512000',
+            'media_url'         => 'required_if:announcement_type,youtube,vimeo|nullable|url|max:500',
+            'media_title'       => 'nullable|string|max:255',
+            'priority'          => 'required|in:low,medium,high,urgent',
+            'target_type'       => 'required|in:all,departments,users',
+            'department_ids'    => 'required_if:target_type,departments|array',
+            'department_ids.*'  => 'exists:departments,id',
+            'user_ids'          => 'required_if:target_type,users|array',
+            'user_ids.*'        => 'exists:users,id',
+            'is_pinned'         => 'nullable|boolean',
+            'starts_at'         => 'nullable|date',
+            'expires_at'        => 'nullable|date|after_or_equal:starts_at',
         ]);
 
         if ($validator->fails()) {
@@ -63,8 +67,13 @@ class AnnouncementController extends Controller
         }
 
         $data = $validator->validated();
-        $data['content'] = strip_tags($data['content'], self::ALLOWED_HTML_TAGS);
-        $data['is_pinned'] = $request->boolean('is_pinned');
+
+        if (!empty($data['content'])) {
+            $data['content'] = strip_tags($data['content'], self::ALLOWED_HTML_TAGS);
+        }
+
+        $data['is_pinned']  = $request->boolean('is_pinned');
+        $data['media_file'] = $request->file('media_file');
 
         $this->announcementService->createAnnouncement(Auth::user(), $data);
 
@@ -93,17 +102,21 @@ class AnnouncementController extends Controller
         Gate::authorize('update', $announcement);
 
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'priority' => 'required|in:low,medium,high,urgent',
-            'target_type' => 'required|in:all,departments,users',
-            'department_ids' => 'required_if:target_type,departments|array',
-            'department_ids.*' => 'exists:departments,id',
-            'user_ids' => 'required_if:target_type,users|array',
-            'user_ids.*' => 'exists:users,id',
-            'is_pinned' => 'nullable|boolean',
-            'starts_at' => 'nullable|date',
-            'expires_at' => 'nullable|date|after_or_equal:starts_at',
+            'title'             => 'required|string|max:255',
+            'content'           => 'nullable|string',
+            'announcement_type' => 'required|in:text,video_upload,audio_upload,youtube,vimeo,livestream',
+            'media_file'        => 'nullable|file|mimes:mp4,webm,mov,mp3,wav,ogg|max:512000',
+            'media_url'         => 'required_if:announcement_type,youtube,vimeo|nullable|url|max:500',
+            'media_title'       => 'nullable|string|max:255',
+            'priority'          => 'required|in:low,medium,high,urgent',
+            'target_type'       => 'required|in:all,departments,users',
+            'department_ids'    => 'required_if:target_type,departments|array',
+            'department_ids.*'  => 'exists:departments,id',
+            'user_ids'          => 'required_if:target_type,users|array',
+            'user_ids.*'        => 'exists:users,id',
+            'is_pinned'         => 'nullable|boolean',
+            'starts_at'         => 'nullable|date',
+            'expires_at'        => 'nullable|date|after_or_equal:starts_at',
         ]);
 
         if ($validator->fails()) {
@@ -111,8 +124,13 @@ class AnnouncementController extends Controller
         }
 
         $data = $validator->validated();
-        $data['content'] = strip_tags($data['content'], self::ALLOWED_HTML_TAGS);
-        $data['is_pinned'] = $request->boolean('is_pinned');
+
+        if (!empty($data['content'])) {
+            $data['content'] = strip_tags($data['content'], self::ALLOWED_HTML_TAGS);
+        }
+
+        $data['is_pinned']  = $request->boolean('is_pinned');
+        $data['media_file'] = $request->file('media_file');
 
         $this->announcementService->updateAnnouncement($announcement, $data);
 
