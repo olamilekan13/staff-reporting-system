@@ -129,6 +129,9 @@
 
         {{-- Sidebar (1/3) --}}
         <div class="space-y-6">
+            {{-- Live & Video widget --}}
+            <x-live-stream-widget :recent-videos="$recentVideos" />
+
             {{-- Announcements --}}
             <x-card title="Announcements">
                 <x-slot:actions>

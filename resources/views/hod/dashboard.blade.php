@@ -98,7 +98,7 @@
             </div>
 
             {{-- Quick Actions (1/3) --}}
-            <div>
+            <div class="space-y-6">
                 <x-card title="Quick Actions">
                     <div class="space-y-3">
                         <x-button variant="primary" class="w-full justify-center" :href="route('hod.reports.create', ['type' => 'department'])">
@@ -123,6 +123,9 @@
                         </x-button>
                     </div>
                 </x-card>
+
+                {{-- Live & Video widget --}}
+                <x-live-stream-widget :recent-videos="$recentVideos" />
             </div>
         </div>
 

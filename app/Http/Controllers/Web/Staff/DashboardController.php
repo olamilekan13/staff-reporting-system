@@ -51,6 +51,15 @@ class DashboardController extends Controller
 
         $reportLinks = $user->reportLinks()->latest()->get();
 
+        $recentVideos = Announcement::whereIn('announcement_type', [
+            'video_upload', 'audio_upload', 'youtube', 'vimeo', 'livestream',
+        ])
+            ->where(fn ($q) => $q->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->latest()
+            ->limit(5)
+            ->get();
+
         return view('staff.dashboard', compact(
             'reportCounts',
             'proposalCounts',
@@ -59,6 +68,7 @@ class DashboardController extends Controller
             'latestNotifications',
             'announcements',
             'reportLinks',
+            'recentVideos',
         ));
     }
 }

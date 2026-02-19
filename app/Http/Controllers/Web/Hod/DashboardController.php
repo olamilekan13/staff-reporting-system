@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Hod;
 
 use App\Http\Controllers\Controller;
+use App\Models\Announcement;
 use App\Models\Report;
 use Illuminate\Support\Facades\Auth;
 
@@ -48,11 +49,21 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
+        $recentVideos = Announcement::whereIn('announcement_type', [
+            'video_upload', 'audio_upload', 'youtube', 'vimeo', 'livestream',
+        ])
+            ->where(fn ($q) => $q->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->latest()
+            ->limit(5)
+            ->get();
+
         return view('hod.dashboard', compact(
             'department',
             'stats',
             'reportsToReview',
             'recentDepartmentReports',
+            'recentVideos',
         ));
     }
 }
