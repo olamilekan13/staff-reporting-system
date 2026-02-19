@@ -211,7 +211,7 @@ class Announcement extends Model implements HasMedia
         return $this->announcement_type === self::TYPE_LIVESTREAM;
     }
 
-    public function hasMedia(): bool
+    public function hasMediaContent(): bool
     {
         return $this->announcement_type !== self::TYPE_TEXT;
     }
