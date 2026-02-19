@@ -9,14 +9,27 @@ import collapse from '@alpinejs/collapse';
 Alpine.plugin(focus);
 Alpine.plugin(collapse);
 
-// Layout component - controls mobile sidebar toggle
+// Layout component - controls mobile sidebar toggle and live stream indicator
 Alpine.data('appLayout', () => ({
     sidebarOpen: false,
+    liveNow: false,
     toggleSidebar() {
         this.sidebarOpen = !this.sidebarOpen;
     },
     closeSidebar() {
         this.sidebarOpen = false;
+    },
+    checkLiveStatus() {
+        const url = document.querySelector('meta[name="stream-status-url"]')?.content;
+        if (!url) return;
+        fetch(url)
+            .then(r => r.json())
+            .then(d => { this.liveNow = d.is_live; })
+            .catch(() => {});
+    },
+    init() {
+        this.checkLiveStatus();
+        setInterval(() => this.checkLiveStatus(), 60000);
     },
 }));
 

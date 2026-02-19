@@ -64,6 +64,11 @@
     @if(config('services.kingschat.app_id'))
         <meta name="kingschat-app-id" content="{{ config('services.kingschat.app_id') }}">
     @endif
+
+    {{-- Stream status URL for Alpine live indicator --}}
+    @auth
+        <meta name="stream-status-url" content="{{ route('stream.status') }}">
+    @endauth
 </head>
 <body x-data="appLayout" class="font-sans bg-gray-50 antialiased">
 

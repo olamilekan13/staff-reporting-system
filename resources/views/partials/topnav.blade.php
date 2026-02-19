@@ -16,8 +16,20 @@
             </h1>
         </div>
 
-        {{-- Right: Notifications + User dropdown --}}
+        {{-- Right: Live indicator + Notifications + User dropdown --}}
         <div class="flex items-center gap-2">
+            {{-- Live stream indicator --}}
+            <a x-show="liveNow"
+               href="{{ route('live.index') }}"
+               class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500 text-white animate-pulse hover:bg-red-600 transition-colors"
+               style="display: none;">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-200 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                </span>
+                LIVE
+            </a>
+
             {{-- Notification bell --}}
             <a href="{{ route('notifications.index') }}" class="relative p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors duration-150">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

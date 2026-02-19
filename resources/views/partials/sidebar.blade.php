@@ -73,6 +73,19 @@
                 Announcements
             </x-sidebar-link>
 
+            {{-- Live Stream --}}
+            <a href="{{ route('live.index') }}"
+               class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150
+                      {{ request()->routeIs('live.*') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                <span class="w-5 h-5 shrink-0">
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                    </svg>
+                </span>
+                <span class="flex-1">Live Stream</span>
+                <span x-show="liveNow" class="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full animate-pulse" style="display: none;">LIVE</span>
+            </a>
+
             <x-sidebar-link :href="route('admin.proposals.index')" :active="request()->routeIs('admin.proposals.*')">
                 <x-slot:icon>
                     <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -130,6 +143,19 @@
                 Announcements
             </x-sidebar-link>
 
+            {{-- Live Stream --}}
+            <a href="{{ route('live.index') }}"
+               class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150
+                      {{ request()->routeIs('live.*') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                <span class="w-5 h-5 shrink-0">
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                    </svg>
+                </span>
+                <span class="flex-1">Live Stream</span>
+                <span x-show="liveNow" class="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full animate-pulse" style="display: none;">LIVE</span>
+            </a>
+
         @elseif($isHOD)
             {{-- HOD navigation --}}
             <x-sidebar-link :href="route('hod.dashboard')" :active="request()->routeIs('hod.dashboard')">
@@ -168,6 +194,19 @@
                 Announcements
             </x-sidebar-link>
 
+            {{-- Live Stream --}}
+            <a href="{{ route('live.index') }}"
+               class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150
+                      {{ request()->routeIs('live.*') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                <span class="w-5 h-5 shrink-0">
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                    </svg>
+                </span>
+                <span class="flex-1">Live Stream</span>
+                <span x-show="liveNow" class="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full animate-pulse" style="display: none;">LIVE</span>
+            </a>
+
         @else
             {{-- Staff navigation --}}
             <x-sidebar-link :href="route('staff.dashboard')" :active="request()->routeIs('staff.dashboard')">
@@ -196,6 +235,19 @@
                 </x-slot:icon>
                 Announcements
             </x-sidebar-link>
+
+            {{-- Live Stream --}}
+            <a href="{{ route('live.index') }}"
+               class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150
+                      {{ request()->routeIs('live.*') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                <span class="w-5 h-5 shrink-0">
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                    </svg>
+                </span>
+                <span class="flex-1">Live Stream</span>
+                <span x-show="liveNow" class="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full animate-pulse" style="display: none;">LIVE</span>
+            </a>
 
             <x-sidebar-link :href="route('staff.proposals.index')" :active="request()->routeIs('staff.proposals.*')">
                 <x-slot:icon>
