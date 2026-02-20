@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\Admin;
 use App\Http\Controllers\Web\AnnouncementController;
 use App\Http\Controllers\Web\CommentController;
 use App\Http\Controllers\Web\Hod;
+use App\Http\Controllers\Web\LiveController;
 use App\Http\Controllers\Web\NotificationController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\Staff;
@@ -116,6 +117,10 @@ Route::middleware('auth')->group(function () {
 
     // User search (for KingsChat share modal)
     Route::get('users/search', \App\Http\Controllers\Web\UserSearchController::class)->name('users.search');
+
+    // Live stream
+    Route::get('stream/status', [LiveController::class, 'status'])->name('stream.status');
+    Route::get('live', [LiveController::class, 'index'])->name('live.index');
 });
 
 // ─── Signed Media URL (for Office Online viewer) ────────────────────

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AnnouncementController;
+use App\Http\Controllers\Api\V1\StreamController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\DepartmentController;
@@ -106,6 +107,10 @@ Route::prefix('v1')->name('api.')->group(function () {
         Route::get('/settings/{group}', [SettingController::class, 'show']);
         Route::get('/settings', [SettingController::class, 'index']);
         Route::put('/settings', [SettingController::class, 'update']);
+
+        // Stream / Live
+        Route::get('stream/status', [StreamController::class, 'status']);
+        Route::get('stream/videos', [StreamController::class, 'videos']);
 
         // Notifications
         Route::prefix('notifications')->group(function () {

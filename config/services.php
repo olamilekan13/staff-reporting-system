@@ -39,4 +39,10 @@ return [
         'app_id' => env('KINGSCHAT_APP_ID', ''),
     ],
 
+    'owncast' => [
+        'url'        => env('OWNCAST_SERVER_URL', 'http://localhost:8080'),
+        'stream_key' => env('OWNCAST_STREAM_KEY', ''),
+        'embed_url'  => env('OWNCAST_EMBED_URL', 'http://localhost:8080/embed/video'),
+    ],
+
 ];
