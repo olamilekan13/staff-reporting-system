@@ -4,20 +4,20 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
-use App\Services\OwncastService;
+use App\Services\LiveStreamService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 
 class LiveController extends Controller
 {
-    public function status(OwncastService $owncast): JsonResponse
+    public function status(LiveStreamService $stream): JsonResponse
     {
-        return response()->json($owncast->getStreamInfo());
+        return response()->json($stream->getStreamInfo());
     }
 
-    public function index(OwncastService $owncast): View
+    public function index(LiveStreamService $stream): View
     {
-        $streamInfo = $owncast->getStreamInfo();
+        $streamInfo = $stream->getStreamInfo();
 
         $recentVideos = Announcement::whereIn('announcement_type', [
             'video_upload', 'audio_upload', 'youtube', 'vimeo',

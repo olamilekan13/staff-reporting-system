@@ -5,14 +5,14 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Resources\AnnouncementResource;
 use App\Models\Announcement;
-use App\Services\OwncastService;
+use App\Services\LiveStreamService;
 use Illuminate\Http\JsonResponse;
 
 class StreamController extends ApiController
 {
-    public function status(OwncastService $owncast): JsonResponse
+    public function status(LiveStreamService $stream): JsonResponse
     {
-        return $this->successResponse($owncast->getStreamInfo(), 'Stream status retrieved successfully');
+        return $this->successResponse($stream->getStreamInfo(), 'Stream status retrieved successfully');
     }
 
     public function videos(): JsonResponse

@@ -25,29 +25,70 @@
         <div class="lg:col-span-2"
              x-data="{
                  isLive: {{ $streamInfo['is_live'] ? 'true' : 'false' }},
-                 viewers: {{ (int) $streamInfo['viewer_count'] }},
                  streamTitle: '{{ addslashes($streamInfo['stream_title'] ?? '') }}',
+                 mode: '{{ $streamInfo['mode'] ?? 'embed' }}',
+                 m3u8Url: '{{ addslashes($streamInfo['m3u8_url'] ?? '') }}',
+                 embedCode: `{{ $streamInfo['embed_code'] ?? '' }}`,
+                 hlsPlayer: null,
                  checkStream() {
                      fetch('{{ route('stream.status') }}')
                          .then(r => r.json())
                          .then(d => {
+                             const wasLive = this.isLive;
                              this.isLive = d.is_live;
-                             this.viewers = d.viewer_count;
                              this.streamTitle = d.stream_title;
+                             this.mode = d.mode;
+                             this.m3u8Url = d.m3u8_url;
+                             this.embedCode = d.embed_code;
+                             if (d.is_live && !wasLive && d.mode === 'm3u8') {
+                                 this.$nextTick(() => this.initHls());
+                             }
+                             if (!d.is_live && wasLive) {
+                                 this.destroyHls();
+                             }
                          })
                          .catch(() => {});
+                 },
+                 initHls() {
+                     const video = this.$refs.hlsVideo;
+                     if (!video || !this.m3u8Url) return;
+                     if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                         video.src = this.m3u8Url;
+                         video.play();
+                     } else if (window.Hls && Hls.isSupported()) {
+                         this.destroyHls();
+                         this.hlsPlayer = new Hls();
+                         this.hlsPlayer.loadSource(this.m3u8Url);
+                         this.hlsPlayer.attachMedia(video);
+                         this.hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+                     }
+                 },
+                 destroyHls() {
+                     if (this.hlsPlayer) {
+                         this.hlsPlayer.destroy();
+                         this.hlsPlayer = null;
+                     }
                  }
              }"
-             x-init="setInterval(() => checkStream(), 30000)">
+             x-init="setInterval(() => checkStream(), 30000); if (isLive && mode === 'm3u8') { $nextTick(() => initHls()); }">
 
             {{-- Live player --}}
             <div x-show="isLive" x-cloak>
                 <div class="bg-black rounded-xl overflow-hidden shadow-sm">
                     <div class="relative w-full" style="padding-bottom: 56.25%">
-                        <iframe class="absolute inset-0 w-full h-full"
-                            src="{{ config('services.owncast.embed_url') }}"
-                            allowfullscreen>
-                        </iframe>
+                        {{-- M3U8 mode --}}
+                        <template x-if="mode === 'm3u8'">
+                            <video x-ref="hlsVideo"
+                                   class="absolute inset-0 w-full h-full"
+                                   controls
+                                   playsinline
+                                   autoplay></video>
+                        </template>
+                        {{-- Embed mode --}}
+                        <template x-if="mode === 'embed'">
+                            <div class="absolute inset-0 w-full h-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0"
+                                 x-html="embedCode"></div>
+                        </template>
                     </div>
                 </div>
                 <div class="mt-3 flex items-center justify-between text-sm">
@@ -58,10 +99,7 @@
                         </span>
                         <span class="font-semibold text-red-600">LIVE NOW</span>
                     </div>
-                    <div class="flex items-center gap-4 text-gray-500">
-                        <span class="font-medium text-gray-700 truncate max-w-xs" x-text="streamTitle"></span>
-                        <span x-text="viewers + ' watching'"></span>
-                    </div>
+                    <span class="font-medium text-gray-700 truncate max-w-xs" x-text="streamTitle"></span>
                 </div>
             </div>
 
@@ -185,3 +223,7 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
+@endpush

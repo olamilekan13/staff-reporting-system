@@ -3,19 +3,51 @@
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
      x-data="{
          isLive: false,
-         viewers: 0,
          streamTitle: '',
+         mode: 'embed',
+         m3u8Url: '',
+         embedCode: '',
          loading: true,
+         hlsPlayer: null,
          checkStream() {
              fetch('{{ route('stream.status') }}')
                  .then(r => r.json())
                  .then(d => {
+                     const wasLive = this.isLive;
                      this.isLive = d.is_live;
-                     this.viewers = d.viewer_count;
                      this.streamTitle = d.stream_title;
+                     this.mode = d.mode;
+                     this.m3u8Url = d.m3u8_url;
+                     this.embedCode = d.embed_code;
                      this.loading = false;
+                     if (d.is_live && !wasLive && d.mode === 'm3u8') {
+                         this.$nextTick(() => this.initHls());
+                     }
+                     if (!d.is_live && wasLive) {
+                         this.destroyHls();
+                     }
                  })
                  .catch(() => { this.loading = false; });
+         },
+         initHls() {
+             const video = this.$refs.widgetHlsVideo;
+             if (!video || !this.m3u8Url) return;
+             if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                 video.src = this.m3u8Url;
+                 video.play();
+             } else if (window.Hls && Hls.isSupported()) {
+                 this.destroyHls();
+                 this.hlsPlayer = new Hls();
+                 this.hlsPlayer.loadSource(this.m3u8Url);
+                 this.hlsPlayer.attachMedia(video);
+                 this.hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+             }
+         },
+         destroyHls() {
+             if (this.hlsPlayer) {
+                 this.hlsPlayer.destroy();
+                 this.hlsPlayer = null;
+             }
          }
      }"
      x-init="checkStream(); setInterval(() => checkStream(), 30000)">
@@ -47,14 +79,23 @@
     {{-- Live player --}}
     <div x-show="isLive && !loading">
         <div class="relative w-full" style="padding-bottom: 56.25%">
-            <iframe class="absolute inset-0 w-full h-full"
-                src="{{ config('services.owncast.embed_url') }}"
-                allowfullscreen>
-            </iframe>
+            {{-- M3U8 mode --}}
+            <template x-if="mode === 'm3u8'">
+                <video x-ref="widgetHlsVideo"
+                       class="absolute inset-0 w-full h-full"
+                       controls
+                       playsinline
+                       autoplay
+                       muted></video>
+            </template>
+            {{-- Embed mode --}}
+            <template x-if="mode === 'embed'">
+                <div class="absolute inset-0 w-full h-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0"
+                     x-html="embedCode"></div>
+            </template>
         </div>
         <div class="px-4 py-2 flex items-center justify-between text-sm">
             <span class="font-medium text-gray-700 truncate" x-text="streamTitle"></span>
-            <span class="text-gray-500 shrink-0 ml-2" x-text="viewers + ' watching'"></span>
         </div>
         <div class="px-4 pb-3">
             <a href="{{ route('live.index') }}" class="text-sm text-primary-600 hover:underline">Open full player &rarr;</a>

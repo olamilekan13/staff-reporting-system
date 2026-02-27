@@ -69,16 +69,38 @@
             </div>
         @endif
 
-    {{-- Livestream (Owncast) --}}
+    {{-- Livestream --}}
     @elseif($type === 'livestream')
         <div x-data="{
             isLive: false,
-            viewers: 0,
+            mode: 'embed',
+            m3u8Url: '',
+            embedCode: '',
+            hlsPlayer: null,
             init() {
                 fetch('{{ route('stream.status') }}')
                     .then(r => r.json())
-                    .then(d => { this.isLive = d.is_live; this.viewers = d.viewer_count })
+                    .then(d => {
+                        this.isLive = d.is_live;
+                        this.mode = d.mode;
+                        this.m3u8Url = d.m3u8_url;
+                        this.embedCode = d.embed_code;
+                        if (d.is_live && d.mode === 'm3u8') {
+                            this.$nextTick(() => this.initHls());
+                        }
+                    })
                     .catch(() => {})
+            },
+            initHls() {
+                const video = this.$refs.mediaHlsVideo;
+                if (!video || !this.m3u8Url) return;
+                if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = this.m3u8Url;
+                } else if (window.Hls && Hls.isSupported()) {
+                    this.hlsPlayer = new Hls();
+                    this.hlsPlayer.loadSource(this.m3u8Url);
+                    this.hlsPlayer.attachMedia(video);
+                }
             }
         }">
             <template x-if="isLive">
@@ -89,13 +111,18 @@
                             <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
                         </span>
                         <span class="text-sm font-semibold text-red-600">LIVE NOW</span>
-                        <span class="text-sm text-gray-500" x-text="viewers + ' watching'"></span>
                     </div>
                     <div class="relative w-full rounded-lg overflow-hidden" style="padding-bottom: 56.25%">
-                        <iframe class="absolute inset-0 w-full h-full"
-                            src="{{ config('services.owncast.embed_url') }}"
-                            allowfullscreen>
-                        </iframe>
+                        <template x-if="mode === 'm3u8'">
+                            <video x-ref="mediaHlsVideo"
+                                   class="absolute inset-0 w-full h-full"
+                                   controls
+                                   playsinline></video>
+                        </template>
+                        <template x-if="mode === 'embed'">
+                            <div class="absolute inset-0 w-full h-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0"
+                                 x-html="embedCode"></div>
+                        </template>
                     </div>
                     <a href="{{ route('live.index') }}" class="mt-2 inline-block text-sm text-primary-600 hover:underline">
                         Open full player &rarr;

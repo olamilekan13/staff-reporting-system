@@ -39,6 +39,12 @@
                     class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors">
                     Features
                 </button>
+                <button
+                    @click="activeTab = 'livestream'"
+                    :class="activeTab === 'livestream' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                    class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors">
+                    Live Stream
+                </button>
             </nav>
         </div>
     </div>
@@ -477,6 +483,101 @@
             </form>
         </x-card>
     </div>
+
+    {{-- Live Stream Tab --}}
+    <div x-show="activeTab === 'livestream'" x-transition>
+        <x-card title="Live Stream Settings" subtitle="Configure the live stream player for your staff">
+            <form @submit.prevent="saveTab('livestream')">
+                <div class="space-y-5" x-data="{ mode: '{{ old('livestream_mode', $settings['livestream']['livestream_mode']['value'] ?? 'embed') }}' }">
+
+                    {{-- On Air Toggle --}}
+                    <label class="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        <input
+                            type="checkbox"
+                            name="livestream_enabled"
+                            value="1"
+                            {{ old('livestream_enabled', $settings['livestream']['livestream_enabled']['value'] ?? false) ? 'checked' : '' }}
+                            class="mt-1 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                        >
+                        <div class="flex-1">
+                            <div class="font-medium text-gray-900">On Air</div>
+                            <p class="text-sm text-gray-500">Toggle this to indicate the stream is currently live. Staff will see the LIVE badge across the app.</p>
+                        </div>
+                    </label>
+
+                    {{-- Stream Title --}}
+                    <x-input
+                        name="livestream_title"
+                        label="Stream Title"
+                        placeholder="Live Service"
+                        :value="old('livestream_title', $settings['livestream']['livestream_title']['value'] ?? 'Live Stream')"
+                    />
+
+                    {{-- Player Mode --}}
+                    <div>
+                        <label for="livestream_mode" class="label">
+                            Player Mode
+                            <span class="text-red-500">*</span>
+                        </label>
+                        <select
+                            name="livestream_mode"
+                            id="livestream_mode"
+                            class="input"
+                            required
+                            x-model="mode"
+                        >
+                            <option value="embed" :selected="mode === 'embed'">Embed Code (iframe)</option>
+                            <option value="m3u8" :selected="mode === 'm3u8'">M3U8 / HLS Stream URL</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Choose how to display the stream. Use "Embed Code" if your provider gave you an iframe snippet, or "M3U8" if you have a direct HLS stream URL.</p>
+                    </div>
+
+                    {{-- Embed Code (shown when mode is embed) --}}
+                    <template x-if="mode === 'embed'">
+                        <div>
+                            <label for="livestream_embed_code" class="label">Embed Code</label>
+                            <textarea
+                                name="livestream_embed_code"
+                                id="livestream_embed_code"
+                                rows="5"
+                                class="input font-mono text-xs"
+                                placeholder='<iframe src="https://example.com/embed/live" width="100%" height="100%" allowfullscreen></iframe>'
+                            >{{ old('livestream_embed_code', $settings['livestream']['livestream_embed_code']['value'] ?? '') }}</textarea>
+                            <p class="text-xs text-gray-500 mt-1">Paste the iframe embed code from your streaming provider. Only &lt;iframe&gt; tags are allowed.</p>
+                        </div>
+                    </template>
+
+                    {{-- M3U8 URL (shown when mode is m3u8) --}}
+                    <template x-if="mode === 'm3u8'">
+                        <div>
+                            <x-input
+                                name="livestream_m3u8_url"
+                                label="M3U8 Stream URL"
+                                type="url"
+                                placeholder="https://example.com/live/stream.m3u8"
+                                :value="old('livestream_m3u8_url', $settings['livestream']['livestream_m3u8_url']['value'] ?? '')"
+                            />
+                            <p class="text-xs text-gray-500 mt-1">The direct HLS stream URL ending in .m3u8</p>
+                        </div>
+                    </template>
+
+                </div>
+
+                <div class="flex items-center gap-3 mt-6 pt-5 border-t border-gray-100">
+                    <button type="submit" class="btn btn-primary" :disabled="loading.livestream">
+                        <span x-show="!loading.livestream">Save Changes</span>
+                        <span x-show="loading.livestream" class="flex items-center gap-2">
+                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Saving...
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </x-card>
+    </div>
 </div>
 @endsection
 
@@ -491,6 +592,7 @@ function settingsPage() {
             email: false,
             reports: false,
             features: false,
+            livestream: false,
             testEmail: false,
         },
 

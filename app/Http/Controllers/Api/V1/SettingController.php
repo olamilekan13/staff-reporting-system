@@ -39,6 +39,7 @@ class SettingController extends ApiController
                                 new OA\Property(property: 'email', type: 'array', items: new OA\Items(ref: '#/components/schemas/Setting')),
                                 new OA\Property(property: 'reports', type: 'array', items: new OA\Items(ref: '#/components/schemas/Setting')),
                                 new OA\Property(property: 'features', type: 'array', items: new OA\Items(ref: '#/components/schemas/Setting')),
+                                new OA\Property(property: 'livestream', type: 'array', items: new OA\Items(ref: '#/components/schemas/Setting')),
                             ]
                         ),
                     ]
@@ -74,7 +75,7 @@ class SettingController extends ApiController
                 in: 'path',
                 required: true,
                 description: 'Settings group name',
-                schema: new OA\Schema(type: 'string', enum: ['general', 'appearance', 'email', 'reports', 'features'])
+                schema: new OA\Schema(type: 'string', enum: ['general', 'appearance', 'email', 'reports', 'features', 'livestream'])
             ),
         ],
         responses: [
@@ -104,6 +105,7 @@ class SettingController extends ApiController
             SiteSetting::GROUP_EMAIL,
             SiteSetting::GROUP_REPORTS,
             SiteSetting::GROUP_FEATURES,
+            SiteSetting::GROUP_LIVESTREAM,
         ];
 
         if (!in_array($group, $validGroups)) {
@@ -154,6 +156,7 @@ class SettingController extends ApiController
                                 new OA\Property(property: 'email', type: 'array', items: new OA\Items(ref: '#/components/schemas/Setting')),
                                 new OA\Property(property: 'reports', type: 'array', items: new OA\Items(ref: '#/components/schemas/Setting')),
                                 new OA\Property(property: 'features', type: 'array', items: new OA\Items(ref: '#/components/schemas/Setting')),
+                                new OA\Property(property: 'livestream', type: 'array', items: new OA\Items(ref: '#/components/schemas/Setting')),
                             ]
                         ),
                     ]

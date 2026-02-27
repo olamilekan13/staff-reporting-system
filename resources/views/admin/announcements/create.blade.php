@@ -82,12 +82,10 @@
                     {{-- Livestream info --}}
                     <div x-show="announcementType === 'livestream'" x-transition>
                         <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <p class="text-sm font-medium text-blue-800">Owncast Live Stream</p>
-                            <p class="text-sm text-blue-600 mt-1">
-                                Your Owncast server: <code class="font-mono text-xs bg-blue-100 px-1 py-0.5 rounded">{{ config('services.owncast.url') }}</code>
-                            </p>
+                            <p class="text-sm font-medium text-blue-800">Live Stream</p>
                             <p class="text-sm text-blue-600 mt-1">
                                 When staff open this announcement, they'll see the live stream player embedded.
+                                Configure your stream URL or embed code in <strong>Settings &rarr; Live Stream</strong>.
                             </p>
                             <div class="mt-3"
                                  x-data="{ status: 'checking' }"

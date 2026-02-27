@@ -27,6 +27,7 @@ class SiteSetting extends Model implements HasMedia
     const GROUP_EMAIL = 'email';
     const GROUP_REPORTS = 'reports';
     const GROUP_FEATURES = 'features';
+    const GROUP_LIVESTREAM = 'livestream';
 
     // Constants for types
     const TYPE_TEXT = 'text';
@@ -200,6 +201,13 @@ class SiteSetting extends Model implements HasMedia
             ['key' => 'enable_proposals', 'value' => '1', 'type' => self::TYPE_BOOLEAN, 'group' => self::GROUP_FEATURES, 'label' => 'Enable Proposals'],
             ['key' => 'enable_kingschat_notifications', 'value' => '0', 'type' => self::TYPE_BOOLEAN, 'group' => self::GROUP_FEATURES, 'label' => 'Enable KingsChat Notifications'],
             ['key' => 'enable_email_notifications', 'value' => '1', 'type' => self::TYPE_BOOLEAN, 'group' => self::GROUP_FEATURES, 'label' => 'Enable Email Notifications'],
+
+            // Live Stream
+            ['key' => 'livestream_enabled', 'value' => '0', 'type' => self::TYPE_BOOLEAN, 'group' => self::GROUP_LIVESTREAM, 'label' => 'On Air', 'description' => 'Toggle the live stream on or off'],
+            ['key' => 'livestream_title', 'value' => 'Live Stream', 'type' => self::TYPE_TEXT, 'group' => self::GROUP_LIVESTREAM, 'label' => 'Stream Title', 'description' => 'Title displayed to viewers'],
+            ['key' => 'livestream_mode', 'value' => 'embed', 'type' => self::TYPE_TEXT, 'group' => self::GROUP_LIVESTREAM, 'label' => 'Player Mode', 'description' => 'How to display the stream: m3u8 (HLS player) or embed (iframe code)'],
+            ['key' => 'livestream_m3u8_url', 'value' => '', 'type' => self::TYPE_TEXT, 'group' => self::GROUP_LIVESTREAM, 'label' => 'M3U8 Stream URL', 'description' => 'HLS stream URL (e.g. https://example.com/live/stream.m3u8)'],
+            ['key' => 'livestream_embed_code', 'value' => '', 'type' => self::TYPE_TEXTAREA, 'group' => self::GROUP_LIVESTREAM, 'label' => 'Embed Code', 'description' => 'Embed iframe code for the live stream'],
         ];
     }
 }

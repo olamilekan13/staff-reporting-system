@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\TestSmtpMail;
 use App\Models\SiteSetting;
+use App\Services\LiveStreamService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
@@ -23,6 +24,7 @@ class SettingController extends Controller
             'email' => $this->getSettingsByGroup(SiteSetting::GROUP_EMAIL),
             'reports' => $this->getSettingsByGroup(SiteSetting::GROUP_REPORTS),
             'features' => $this->getSettingsByGroup(SiteSetting::GROUP_FEATURES),
+            'livestream' => $this->getSettingsByGroup(SiteSetting::GROUP_LIVESTREAM),
         ];
 
         return view('admin.settings.index', compact('settings'));
@@ -40,6 +42,7 @@ class SettingController extends Controller
             SiteSetting::GROUP_EMAIL,
             SiteSetting::GROUP_REPORTS,
             SiteSetting::GROUP_FEATURES,
+            SiteSetting::GROUP_LIVESTREAM,
         ])) {
             return response()->json([
                 'success' => false,
@@ -162,6 +165,13 @@ class SettingController extends Controller
                 'enable_email_notifications' => 'nullable|boolean',
                 'enable_kingschat_notifications' => 'nullable|boolean',
             ],
+            SiteSetting::GROUP_LIVESTREAM => [
+                'livestream_enabled' => 'nullable|boolean',
+                'livestream_title' => 'nullable|string|max:255',
+                'livestream_mode' => 'required|string|in:m3u8,embed',
+                'livestream_m3u8_url' => 'nullable|url|max:2000',
+                'livestream_embed_code' => 'nullable|string|max:5000',
+            ],
             default => [],
         };
 
@@ -176,6 +186,7 @@ class SettingController extends Controller
             SiteSetting::GROUP_EMAIL => $this->saveEmailSettings($request),
             SiteSetting::GROUP_REPORTS => $this->saveReportsSettings($request),
             SiteSetting::GROUP_FEATURES => $this->saveFeaturesSettings($request),
+            SiteSetting::GROUP_LIVESTREAM => $this->saveLivestreamSettings($request),
         };
     }
 
@@ -261,5 +272,21 @@ class SettingController extends Controller
         SiteSetting::set('enable_proposals', $request->boolean('enable_proposals') ? '1' : '0');
         SiteSetting::set('enable_email_notifications', $request->boolean('enable_email_notifications') ? '1' : '0');
         SiteSetting::set('enable_kingschat_notifications', $request->boolean('enable_kingschat_notifications') ? '1' : '0');
+    }
+
+    private function saveLivestreamSettings(Request $request): void
+    {
+        SiteSetting::set('livestream_enabled', $request->boolean('livestream_enabled') ? '1' : '0');
+        SiteSetting::set('livestream_title', $request->input('livestream_title', 'Live Stream'));
+        SiteSetting::set('livestream_mode', $request->input('livestream_mode', 'embed'));
+        SiteSetting::set('livestream_m3u8_url', $request->input('livestream_m3u8_url', ''));
+
+        $embedCode = $request->input('livestream_embed_code', '');
+        if ($embedCode) {
+            $embedCode = strip_tags($embedCode, '<iframe>');
+        }
+        SiteSetting::set('livestream_embed_code', $embedCode);
+
+        app(LiveStreamService::class)->clearCache();
     }
 }

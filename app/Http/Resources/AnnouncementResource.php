@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -22,7 +23,9 @@ class AnnouncementResource extends JsonResource
             'media_type'         => $this->getMediaType(),
             'youtube_embed_url'  => $this->isYouTube() ? $this->getYouTubeEmbedUrl() : null,
             'vimeo_embed_url'    => $this->isVimeo() ? $this->getVimeoEmbedUrl() : null,
-            'owncast_embed_url'  => config('services.owncast.embed_url'),
+            'livestream_mode'    => SiteSetting::get('livestream_mode', 'embed'),
+            'livestream_embed'   => SiteSetting::get('livestream_embed_code', ''),
+            'livestream_m3u8'    => SiteSetting::get('livestream_m3u8_url', ''),
             'priority' => $this->priority,
             'priority_badge_class' => $this->getPriorityBadgeClass(),
             'target_type' => $this->target_type,
