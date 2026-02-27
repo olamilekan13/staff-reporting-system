@@ -32,7 +32,7 @@
                             <option value="audio_upload">Upload Audio File</option>
                             <option value="youtube">YouTube Video</option>
                             <option value="vimeo">Vimeo Video</option>
-                            <option value="livestream">Live Stream (Owncast)</option>
+                            <option value="livestream">Live Stream</option>
                         </select>
                         @error('announcement_type')
                             <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
