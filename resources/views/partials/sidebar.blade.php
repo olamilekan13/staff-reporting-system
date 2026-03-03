@@ -73,6 +73,16 @@
                 Announcements
             </x-sidebar-link>
 
+            <x-sidebar-link :href="route('admin.videos.index')" :active="request()->routeIs('admin.videos.*') || request()->routeIs('admin.video-categories.*')">
+                <x-slot:icon>
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z" />
+                    </svg>
+                </x-slot:icon>
+                Videos
+            </x-sidebar-link>
+
             {{-- Live Stream --}}
             <a href="{{ route('live.index') }}"
                class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150
@@ -143,6 +153,16 @@
                 Announcements
             </x-sidebar-link>
 
+            <x-sidebar-link :href="route('videos.index')" :active="request()->routeIs('videos.*')">
+                <x-slot:icon>
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z" />
+                    </svg>
+                </x-slot:icon>
+                Videos
+            </x-sidebar-link>
+
             {{-- Live Stream --}}
             <a href="{{ route('live.index') }}"
                class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150
@@ -194,6 +214,16 @@
                 Announcements
             </x-sidebar-link>
 
+            <x-sidebar-link :href="route('videos.index')" :active="request()->routeIs('videos.*')">
+                <x-slot:icon>
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z" />
+                    </svg>
+                </x-slot:icon>
+                Videos
+            </x-sidebar-link>
+
             {{-- Live Stream --}}
             <a href="{{ route('live.index') }}"
                class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150
@@ -234,6 +264,16 @@
                     </svg>
                 </x-slot:icon>
                 Announcements
+            </x-sidebar-link>
+
+            <x-sidebar-link :href="route('videos.index')" :active="request()->routeIs('videos.*')">
+                <x-slot:icon>
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z" />
+                    </svg>
+                </x-slot:icon>
+                Videos
             </x-sidebar-link>
 
             {{-- Live Stream --}}

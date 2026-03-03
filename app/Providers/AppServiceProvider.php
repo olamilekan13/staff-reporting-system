@@ -12,6 +12,8 @@ use App\Models\ReportLink;
 use App\Models\SiteSetting;
 use App\Models\User;
 use App\Models\UserNotificationPreference;
+use App\Models\Video;
+use App\Models\VideoCategory;
 use App\Observers\UserObserver;
 use App\Policies\AnnouncementPolicy;
 use App\Policies\CommentPolicy;
@@ -23,6 +25,8 @@ use App\Policies\ReportLinkPolicy;
 use App\Policies\ReportPolicy;
 use App\Policies\SettingPolicy;
 use App\Policies\UserPolicy;
+use App\Policies\VideoCategoryPolicy;
+use App\Policies\VideoPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
@@ -74,6 +78,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Department::class, DepartmentPolicy::class);
         Gate::policy(SiteSetting::class, SettingPolicy::class);
         Gate::policy(ReportLink::class, ReportLinkPolicy::class);
+        Gate::policy(Video::class, VideoPolicy::class);
+        Gate::policy(VideoCategory::class, VideoCategoryPolicy::class);
     }
 
     /**

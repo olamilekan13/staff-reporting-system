@@ -116,6 +116,11 @@ class User extends Authenticatable implements HasMedia
         return $this->hasMany(ReportLink::class);
     }
 
+    public function watchLogs(): HasMany
+    {
+        return $this->hasMany(VideoWatchLog::class);
+    }
+
     // Scopes
     public function scopeActive($query)
     {

@@ -30,6 +30,9 @@
                  m3u8Url: '{{ addslashes($streamInfo['m3u8_url'] ?? '') }}',
                  embedCode: `{{ $streamInfo['embed_code'] ?? '' }}`,
                  hlsPlayer: null,
+                 // Watch tracking
+                 watchSessionId: null,
+                 watchHeartbeat: null,
                  checkStream() {
                      fetch('{{ route('stream.status') }}')
                          .then(r => r.json())
@@ -40,11 +43,13 @@
                              this.mode = d.mode;
                              this.m3u8Url = d.m3u8_url;
                              this.embedCode = d.embed_code;
-                             if (d.is_live && !wasLive && d.mode === 'm3u8') {
-                                 this.$nextTick(() => this.initHls());
+                             if (d.is_live && !wasLive) {
+                                 if (d.mode === 'm3u8') this.$nextTick(() => this.initHls());
+                                 this.startWatchTracking();
                              }
                              if (!d.is_live && wasLive) {
                                  this.destroyHls();
+                                 this.endWatchTracking(false);
                              }
                          })
                          .catch(() => {});
@@ -68,9 +73,51 @@
                          this.hlsPlayer.destroy();
                          this.hlsPlayer = null;
                      }
+                 },
+                 startWatchTracking() {
+                     if (this.watchSessionId) return;
+                     fetch('/api/v1/watch/start', {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(document.cookie.match(/XSRF-TOKEN=([^;]+)/)?.[1] || '') },
+                         credentials: 'same-origin',
+                         body: JSON.stringify({ source: 'livestream' })
+                     })
+                     .then(r => r.json())
+                     .then(d => {
+                         if (d.data?.session_id) {
+                             this.watchSessionId = d.data.session_id;
+                             this.watchHeartbeat = setInterval(() => this.sendHeartbeat(), 30000);
+                         }
+                     })
+                     .catch(() => {});
+                 },
+                 sendHeartbeat() {
+                     if (!this.watchSessionId) return;
+                     fetch('/api/v1/watch/heartbeat', {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(document.cookie.match(/XSRF-TOKEN=([^;]+)/)?.[1] || '') },
+                         credentials: 'same-origin',
+                         body: JSON.stringify({ session_id: this.watchSessionId })
+                     }).catch(() => {});
+                 },
+                 endWatchTracking(completed = false) {
+                     if (!this.watchSessionId) return;
+                     if (this.watchHeartbeat) { clearInterval(this.watchHeartbeat); this.watchHeartbeat = null; }
+                     const payload = JSON.stringify({ session_id: this.watchSessionId, completed });
+                     if (navigator.sendBeacon) {
+                         navigator.sendBeacon('/api/v1/watch/end', new Blob([payload], { type: 'application/json' }));
+                     } else {
+                         fetch('/api/v1/watch/end', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: payload, keepalive: true }).catch(() => {});
+                     }
+                     this.watchSessionId = null;
                  }
              }"
-             x-init="setInterval(() => checkStream(), 30000); if (isLive && mode === 'm3u8') { $nextTick(() => initHls()); }">
+             x-init="
+                 setInterval(() => checkStream(), 30000);
+                 if (isLive && mode === 'm3u8') { $nextTick(() => initHls()); }
+                 if (isLive) { startWatchTracking(); }
+                 window.addEventListener('beforeunload', () => endWatchTracking(false));
+             ">
 
             {{-- Live player --}}
             <div x-show="isLive" x-cloak>

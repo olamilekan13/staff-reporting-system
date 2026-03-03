@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\ReportLinkController;
 use App\Http\Controllers\Api\V1\SettingController;
 use App\Http\Controllers\Api\V1\UserController;
+use App\Http\Controllers\Api\V1\VideoWatchController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -111,6 +112,13 @@ Route::prefix('v1')->name('api.')->group(function () {
         // Stream / Live
         Route::get('stream/status', [StreamController::class, 'status']);
         Route::get('stream/videos', [StreamController::class, 'videos']);
+
+        // Watch tracking (video attendance)
+        Route::prefix('watch')->group(function () {
+            Route::post('/start', [VideoWatchController::class, 'start']);
+            Route::post('/heartbeat', [VideoWatchController::class, 'heartbeat']);
+            Route::post('/end', [VideoWatchController::class, 'end']);
+        });
 
         // Notifications
         Route::prefix('notifications')->group(function () {

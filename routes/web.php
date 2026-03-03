@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\LiveController;
 use App\Http\Controllers\Web\NotificationController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\Staff;
+use App\Http\Controllers\Web\VideoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -47,6 +48,14 @@ Route::prefix('admin')
         Route::resource('reports', Admin\ReportController::class)->names('admin.reports');
         Route::resource('announcements', Admin\AnnouncementController::class)->names('admin.announcements');
 
+        // Video management & attendance (accessible to all admin roles)
+        Route::get('videos/{video}/attendance/export', [Admin\VideoAttendanceController::class, 'exportVideoAttendance'])->name('admin.videos.attendance.export');
+        Route::get('videos/{video}/attendance', [Admin\VideoAttendanceController::class, 'videoAttendance'])->name('admin.videos.attendance');
+        Route::get('livestream-attendance/export', [Admin\VideoAttendanceController::class, 'exportLivestreamAttendance'])->name('admin.livestream-attendance.export');
+        Route::get('livestream-attendance', [Admin\VideoAttendanceController::class, 'livestreamAttendance'])->name('admin.livestream-attendance');
+        Route::resource('video-categories', Admin\VideoCategoryController::class)->names('admin.video-categories');
+        Route::resource('videos', Admin\VideoController::class)->names('admin.videos');
+
         // Routes restricted to super_admin and admin only (NOT Head of Operations)
         Route::middleware('role:super_admin,admin')->group(function () {
             // User management routes
@@ -55,6 +64,7 @@ Route::prefix('admin')
             Route::post('users/import/preview', [Admin\UserController::class, 'importPreview'])->name('admin.users.import.preview');
             Route::get('users/export', [Admin\UserController::class, 'export'])->name('admin.users.export');
             Route::post('users/{user}/toggle-activation', [Admin\UserController::class, 'toggleActivation'])->name('admin.users.toggle-activation');
+            Route::get('users/{user}/watch-history', [Admin\VideoAttendanceController::class, 'userHistory'])->name('admin.users.watch-history');
             Route::resource('users', Admin\UserController::class)->names('admin.users');
 
             // Report Links Management (AJAX) - super_admin only
@@ -87,6 +97,7 @@ Route::prefix('hod')
         Route::get('department', [Hod\DepartmentController::class, 'show'])->name('hod.department.show');
         Route::post('reports/{report}/review', [Hod\ReportController::class, 'review'])->name('hod.reports.review');
         Route::resource('reports', Hod\ReportController::class)->names('hod.reports');
+        Route::get('video-attendance', [Hod\VideoAttendanceController::class, 'index'])->name('hod.video-attendance');
     });
 
 // ─── Staff Routes ────────────────────────────────────────────────────
@@ -117,6 +128,10 @@ Route::middleware('auth')->group(function () {
 
     // User search (for KingsChat share modal)
     Route::get('users/search', \App\Http\Controllers\Web\UserSearchController::class)->name('users.search');
+
+    // Videos (on-demand)
+    Route::get('videos', [VideoController::class, 'index'])->name('videos.index');
+    Route::get('videos/{video}', [VideoController::class, 'show'])->name('videos.show');
 
     // Live stream
     Route::get('stream/status', [LiveController::class, 'status'])->name('stream.status');
