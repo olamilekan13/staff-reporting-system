@@ -67,8 +67,9 @@ Route::prefix('admin')
             Route::get('users/{user}/watch-history', [Admin\VideoAttendanceController::class, 'userHistory'])->name('admin.users.watch-history');
             Route::resource('users', Admin\UserController::class)->names('admin.users');
 
-            // Report Links Management (AJAX) - super_admin only
+            // Super admin only operations
             Route::middleware('role:super_admin')->group(function () {
+                Route::post('users/bulk-delete', [Admin\UserController::class, 'bulkDelete'])->name('admin.users.bulk-delete');
                 Route::post('users/{user}/report-links', [Admin\UserController::class, 'storeReportLink'])->name('admin.users.report-links.store');
                 Route::put('report-links/{reportLink}', [Admin\UserController::class, 'updateReportLink'])->name('admin.users.report-links.update');
                 Route::delete('report-links/{reportLink}', [Admin\UserController::class, 'destroyReportLink'])->name('admin.users.report-links.destroy');

@@ -106,6 +106,27 @@
             </form>
         </div>
 
+        {{-- Bulk Delete Action Bar --}}
+        @can('bulkDelete', App\Models\User::class)
+            <div x-show="selectedUsers.length > 0" style="display:none;" class="mt-6 flex items-center justify-between gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                <span class="text-sm font-medium text-red-800">
+                    <span x-text="selectedUsers.length"></span> user(s) selected
+                </span>
+                <div class="flex items-center gap-2">
+                    <button @click="selectedUsers = []" class="text-sm text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-lg border border-gray-300 bg-white">
+                        Clear
+                    </button>
+                    <button @click="showDeleteModal = true"
+                        class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
+                        Delete Permanently (<span x-text="selectedUsers.length"></span>)
+                    </button>
+                </div>
+            </div>
+        @endcan
+
         {{-- Users table --}}
         @if($users->isEmpty())
             <x-card class="mt-6">
@@ -118,9 +139,39 @@
                 </x-empty-state>
             </x-card>
         @else
-            <x-data-table :headers="['name' => 'Name', 'kingschat_id' => 'KingsChat ID', 'email' => 'Email', 'department' => 'Department', 'role' => 'Role', 'status' => 'Status', 'actions' => '']" class="mt-6">
+            <div class="card overflow-hidden mt-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-100 bg-gray-50/50">
+                                @can('bulkDelete', App\Models\User::class)
+                                    <th class="px-4 py-3 w-10">
+                                        <input type="checkbox" @change="toggleSelectAll($event)"
+                                            :checked="selectedUsers.length > 0 && selectedUsers.length === selectableUserIds.length"
+                                            class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                    </th>
+                                @endcan
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KingsChat ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+
                 @foreach($users as $user)
-                    <tr class="hover:bg-gray-50">
+                    <tr class="hover:bg-gray-50" :class="selectedUsers.includes({{ $user->id }}) ? 'bg-primary-50/50' : ''">
+                        @can('bulkDelete', App\Models\User::class)
+                            <td class="px-4 py-3">
+                                @if(auth()->id() !== $user->id && !$user->hasRole('super_admin'))
+                                    <input type="checkbox" value="{{ $user->id }}" x-model.number="selectedUsers"
+                                        class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                @endif
+                            </td>
+                        @endcan
                         <td class="px-6 py-3">
                             <a href="{{ route('admin.users.show', $user) }}" class="font-medium text-gray-900 hover:text-primary-600">
                                 {{ $user->full_name }}
@@ -170,11 +221,11 @@
                                     </button>
                                 @endcan
                                 @can('delete', $user)
-                                    @if(auth()->id() !== $user->id)
-                                        <form method="POST" action="{{ route('admin.users.destroy', $user) }}" onsubmit="return confirm('Are you sure you want to deactivate this user?')">
+                                    @if(auth()->id() !== $user->id && !$user->hasRole('super_admin'))
+                                        <form method="POST" action="{{ route('admin.users.destroy', $user) }}" onsubmit="return confirm('Are you sure you want to PERMANENTLY DELETE this user? This will remove all their data and cannot be undone.')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Delete</button>
+                                            <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Delete Permanently</button>
                                         </form>
                                     @endif
                                 @endcan
@@ -183,11 +234,51 @@
                     </tr>
                 @endforeach
 
-                <x-slot:pagination>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-6 py-3 border-t border-gray-100">
                     {{ $users->withQueryString()->links() }}
-                </x-slot:pagination>
-            </x-data-table>
+                </div>
+            </div>
         @endif
+
+    {{-- Bulk Delete Confirmation Modal --}}
+    @can('bulkDelete', App\Models\User::class)
+        <div x-show="showDeleteModal" style="display:none;" class="fixed inset-0 z-[60] overflow-y-auto">
+            <div class="fixed inset-0 bg-black/50" @click="showDeleteModal = false"></div>
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full" @click.stop>
+                    <div class="px-6 py-4 border-b border-gray-100">
+                        <h3 class="text-lg font-semibold text-red-600">Permanently Delete Users</h3>
+                    </div>
+                    <div class="px-6 py-4">
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <p class="text-sm text-red-800 font-medium">This will permanently delete <span x-text="selectedUsers.length"></span> user(s) and ALL their data:</p>
+                            <ul class="text-xs text-red-700 mt-2 space-y-0.5 list-disc list-inside">
+                                <li>Reports and proposals</li>
+                                <li>Comments and notifications</li>
+                                <li>Watch history and activity logs</li>
+                            </ul>
+                            <p class="text-sm text-red-900 font-bold mt-2">This action cannot be undone.</p>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+                        <button @click="showDeleteModal = false"
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+                        <button @click="executeBulkDelete()" :disabled="bulkDeleting"
+                            class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2">
+                            <svg x-show="bulkDeleting" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Delete Permanently
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endcan
     </div>
 
     {{-- Import Modal --}}
@@ -314,6 +405,58 @@
     function usersIndex() {
         return {
             showFilters: {{ request()->hasAny(['department_id', 'role', 'is_active', 'search']) ? 'true' : 'false' }},
+
+            // Bulk selection
+            selectedUsers: [],
+            selectableUserIds: [
+                @foreach($users as $u)
+                    @if(auth()->id() !== $u->id && !$u->hasRole('super_admin'))
+                        {{ $u->id }},
+                    @endif
+                @endforeach
+            ],
+            showDeleteModal: false,
+            bulkDeleting: false,
+
+            toggleSelectAll(event) {
+                if (event.target.checked) {
+                    this.selectedUsers = [...this.selectableUserIds];
+                } else {
+                    this.selectedUsers = [];
+                }
+            },
+
+            async executeBulkDelete() {
+                if (this.bulkDeleting) return;
+                this.bulkDeleting = true;
+
+                try {
+                    const response = await fetch('{{ route("admin.users.bulk-delete") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({ user_ids: this.selectedUsers }),
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        this.$dispatch('toast', { type: 'success', title: data.message });
+                        this.showDeleteModal = false;
+                        this.selectedUsers = [];
+                        window.location.reload();
+                    } else {
+                        this.$dispatch('toast', { type: 'error', title: data.message || 'Failed to delete users.' });
+                    }
+                } catch (e) {
+                    this.$dispatch('toast', { type: 'error', title: 'An error occurred.' });
+                } finally {
+                    this.bulkDeleting = false;
+                }
+            },
 
             async toggleActivation(userId, currentStatus, userName) {
                 const action = currentStatus ? 'deactivate' : 'activate';

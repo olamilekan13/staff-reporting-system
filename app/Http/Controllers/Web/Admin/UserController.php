@@ -163,11 +163,49 @@ class UserController extends Controller
             return back()->with('error', 'You cannot delete your own account.');
         }
 
-        $this->userService->deactivateUser($user);
+        if ($user->hasRole('super_admin')) {
+            return back()->with('error', 'Cannot delete a super admin account.');
+        }
+
+        $this->userService->hardDeleteUser($user);
 
         return redirect()
             ->route('admin.users.index')
-            ->with('success', 'User deactivated successfully.');
+            ->with('success', 'User permanently deleted.');
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        Gate::authorize('bulkDelete', User::class);
+
+        $validator = Validator::make($request->all(), [
+            'user_ids' => 'required|array|min:1',
+            'user_ids.*' => 'integer|exists:users,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $result = $this->userService->bulkHardDelete(
+            $validator->validated()['user_ids'],
+            Auth::id()
+        );
+
+        $message = "Permanently deleted {$result['deleted_count']} user(s).";
+        if (!empty($result['skipped'])) {
+            $message .= ' Skipped: ' . implode(', ', $result['skipped']) . '.';
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'deleted_count' => $result['deleted_count'],
+            'skipped' => $result['skipped'],
+        ]);
     }
 
     public function importTemplate()

@@ -190,6 +190,58 @@ class UserService
     }
 
     /**
+     * Permanently delete a single user (hard delete).
+     */
+    public function hardDeleteUser(User $user): void
+    {
+        ActivityLog::log(ActivityLog::ACTION_DELETE, $user);
+
+        $user->tokens()->delete();
+        $user->clearMediaCollection('profile_photo');
+        $user->delete();
+    }
+
+    /**
+     * Permanently delete multiple users (hard delete).
+     *
+     * @return array{deleted_count: int, skipped: array}
+     */
+    public function bulkHardDelete(array $userIds, int $currentUserId): array
+    {
+        $users = User::whereIn('id', $userIds)->with('roles')->get();
+
+        $deletedCount = 0;
+        $skipped = [];
+
+        foreach ($users as $user) {
+            if ($user->id === $currentUserId) {
+                $skipped[] = "{$user->full_name} (cannot delete yourself)";
+                continue;
+            }
+
+            if ($user->hasRole('super_admin')) {
+                $skipped[] = "{$user->full_name} (super admin)";
+                continue;
+            }
+
+            // Log before deleting since user_id will be gone after
+            ActivityLog::log(ActivityLog::ACTION_DELETE, $user);
+
+            // Cleanup
+            $user->tokens()->delete();
+            $user->clearMediaCollection('profile_photo');
+
+            $user->delete();
+            $deletedCount++;
+        }
+
+        return [
+            'deleted_count' => $deletedCount,
+            'skipped' => $skipped,
+        ];
+    }
+
+    /**
      * Preview import data without saving to database.
      *
      * @return array{preview: array, errors: array}

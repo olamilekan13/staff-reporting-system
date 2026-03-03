@@ -39,11 +39,11 @@ class UserPolicy
     }
 
     /**
-     * Only admins can deactivate users.
+     * Only super admins can permanently delete users.
      */
     public function delete(User $user, User $model): bool
     {
-        return $user->isAdmin();
+        return $user->isSuperAdmin();
     }
 
     /**
@@ -60,5 +60,13 @@ class UserPolicy
     public function import(User $user): bool
     {
         return $user->isAdmin();
+    }
+
+    /**
+     * Only super admins can bulk hard-delete users.
+     */
+    public function bulkDelete(User $user): bool
+    {
+        return $user->isSuperAdmin();
     }
 }
