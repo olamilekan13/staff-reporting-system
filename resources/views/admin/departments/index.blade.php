@@ -57,12 +57,13 @@
         <x-card>
             <x-empty-state
                 title="No departments found"
-                description="Get started by creating your first department."
-                :action="[
-                    'label' => 'New Department',
-                    'url' => route('admin.departments.create'),
-                ]"
-            />
+                description="Get started by creating your first department.">
+                <x-slot:action>
+                    <a href="{{ route('admin.departments.create') }}" class="inline-flex items-center px-4 py-2 bg-primary-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-primary-700 transition">
+                        New Department
+                    </a>
+                </x-slot:action>
+            </x-empty-state>
         </x-card>
     @else
         <div class="card overflow-hidden">

@@ -55,7 +55,7 @@ class WatchTrackingService
 
         $log->update([
             'last_heartbeat_at' => now(),
-            'duration_seconds' => now()->diffInSeconds($log->started_at),
+            'duration_seconds' => min((int) now()->diffInSeconds($log->started_at), 4294967295),
         ]);
 
         return $log;
@@ -77,7 +77,7 @@ class WatchTrackingService
 
         $log->update([
             'ended_at' => now(),
-            'duration_seconds' => now()->diffInSeconds($log->started_at),
+            'duration_seconds' => min((int) now()->diffInSeconds($log->started_at), 4294967295),
             'completed' => $completed,
         ]);
 
