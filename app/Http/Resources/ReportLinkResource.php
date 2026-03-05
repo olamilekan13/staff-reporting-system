@@ -11,6 +11,7 @@ use OpenApi\Attributes as OA;
     description: 'Report link resource',
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
+        new OA\Property(property: 'label', type: 'string', nullable: true, maxLength: 100, example: 'Weekly Report'),
         new OA\Property(property: 'url', type: 'string', format: 'url', maxLength: 500, example: 'https://docs.google.com/document/d/xxxxx'),
         new OA\Property(property: 'user', ref: '#/components/schemas/User'),
         new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
@@ -23,6 +24,7 @@ class ReportLinkResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'label' => $this->label,
             'url' => $this->url,
             'user' => new UserResource($this->whenLoaded('user')),
             'created_at' => $this->created_at->toIso8601String(),

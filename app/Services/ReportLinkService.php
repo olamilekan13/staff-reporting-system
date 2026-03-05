@@ -25,13 +25,14 @@ class ReportLinkService
         $link = ReportLink::create([
             'user_id' => $user->id,
             'url' => $data['url'],
+            'label' => $data['label'] ?? null,
         ]);
 
         ActivityLog::log(
             ActivityLog::ACTION_CREATE,
             $link,
             null,
-            ['url' => $link->url, 'user' => $user->full_name]
+            ['url' => $link->url, 'label' => $link->label, 'user' => $user->full_name]
         );
 
         return $link;
@@ -42,17 +43,18 @@ class ReportLinkService
      */
     public function updateLink(ReportLink $link, array $data): ReportLink
     {
-        $oldValues = ['url' => $link->url];
+        $oldValues = ['url' => $link->url, 'label' => $link->label];
 
         $link->update([
             'url' => $data['url'],
+            'label' => $data['label'] ?? null,
         ]);
 
         ActivityLog::log(
             ActivityLog::ACTION_UPDATE,
             $link,
             $oldValues,
-            ['url' => $link->url]
+            ['url' => $link->url, 'label' => $link->label]
         );
 
         return $link;

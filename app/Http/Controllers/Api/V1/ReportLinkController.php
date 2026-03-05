@@ -96,6 +96,7 @@ class ReportLinkController extends ApiController
         Gate::authorize('create', ReportLink::class);
 
         $validator = Validator::make($request->all(), [
+            'label' => 'nullable|string|max:100',
             'url' => 'required|url|max:500',
         ]);
 
@@ -165,6 +166,7 @@ class ReportLinkController extends ApiController
         Gate::authorize('update', $reportLink);
 
         $validator = Validator::make($request->all(), [
+            'label' => 'nullable|string|max:100',
             'url' => 'required|url|max:500',
         ]);
 

@@ -12,6 +12,7 @@ class ReportLink extends Model
     protected $fillable = [
         'user_id',
         'url',
+        'label',
     ];
 
     protected function casts(): array

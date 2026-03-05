@@ -308,6 +308,7 @@ class UserController extends Controller
         Gate::authorize('create', ReportLink::class);
 
         $validator = Validator::make($request->all(), [
+            'label' => 'required|string|max:100',
             'url' => 'required|url|max:500',
         ]);
 
@@ -326,6 +327,7 @@ class UserController extends Controller
             'message' => 'Report link added successfully',
             'data' => [
                 'id' => $link->id,
+                'label' => $link->label,
                 'url' => $link->url,
                 'created_at' => $link->created_at->format('M d, Y'),
             ],
@@ -340,6 +342,7 @@ class UserController extends Controller
         Gate::authorize('update', $reportLink);
 
         $validator = Validator::make($request->all(), [
+            'label' => 'required|string|max:100',
             'url' => 'required|url|max:500',
         ]);
 
@@ -358,6 +361,7 @@ class UserController extends Controller
             'message' => 'Report link updated successfully',
             'data' => [
                 'id' => $link->id,
+                'label' => $link->label,
                 'url' => $link->url,
                 'updated_at' => $link->updated_at->format('M d, Y'),
             ],

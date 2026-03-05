@@ -325,13 +325,14 @@
                     @foreach($reportLinks as $link)
                         <div class="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors" data-link-id="{{ $link->id }}">
                             <div class="flex-1 min-w-0">
-                                <a href="{{ $link->url }}" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-primary-600 hover:text-primary-800 truncate block">
+                                <p class="text-sm font-medium text-gray-900">{{ $link->label ?: $link->url }}</p>
+                                <a href="{{ $link->url }}" target="_blank" rel="noopener noreferrer" class="text-xs text-primary-600 hover:text-primary-800 truncate block mt-0.5">
                                     {{ $link->url }}
                                 </a>
                                 <p class="text-xs text-gray-500 mt-0.5">Added {{ $link->created_at->diffForHumans() }}</p>
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
-                                <button type="button" onclick="editLink({{ $link->id }}, '{{ $link->url }}')" class="text-gray-600 hover:text-primary-600 transition-colors">
+                                <button type="button" onclick="editLink({{ $link->id }}, '{{ addslashes($link->url) }}', '{{ addslashes($link->label ?? '') }}')" class="text-gray-600 hover:text-primary-600 transition-colors">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
                                     </svg>
@@ -360,8 +361,23 @@
 
                 <div class="space-y-4">
                     <div>
+                        <label for="link-label" class="block text-sm font-medium text-gray-700 mb-1">
+                            Label <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="link-label"
+                            name="label"
+                            required
+                            maxlength="100"
+                            placeholder="e.g. Weekly Report"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        >
+                        <p class="text-xs text-red-600 mt-1 hidden" id="label-error"></p>
+                    </div>
+                    <div>
                         <label for="link-url" class="block text-sm font-medium text-gray-700 mb-1">
-                            Google Docs URL <span class="text-red-500">*</span>
+                            URL <span class="text-red-500">*</span>
                         </label>
                         <input
                             type="url"
@@ -371,7 +387,6 @@
                             placeholder="https://docs.google.com/document/d/..."
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         >
-                        <p class="text-xs text-gray-500 mt-1">Enter the full Google Docs URL</p>
                         <p class="text-xs text-red-600 mt-1 hidden" id="url-error"></p>
                     </div>
                 </div>
@@ -399,17 +414,20 @@
                 document.getElementById('link-id').value = '';
                 document.getElementById('form-method').value = 'POST';
                 document.getElementById('submit-text').textContent = 'Add Link';
+                document.getElementById('label-error').classList.add('hidden');
                 document.getElementById('url-error').classList.add('hidden');
                 window.dispatchEvent(new CustomEvent('open-modal', { detail: 'link-modal' }));
             }
 
-            function editLink(linkId, currentUrl) {
+            function editLink(linkId, currentUrl, currentLabel) {
                 editingLinkId = linkId;
                 document.getElementById('modal-title').textContent = 'Edit Report Link';
                 document.getElementById('link-id').value = linkId;
+                document.getElementById('link-label').value = currentLabel;
                 document.getElementById('link-url').value = currentUrl;
                 document.getElementById('form-method').value = 'PUT';
                 document.getElementById('submit-text').textContent = 'Update Link';
+                document.getElementById('label-error').classList.add('hidden');
                 document.getElementById('url-error').classList.add('hidden');
                 window.dispatchEvent(new CustomEvent('open-modal', { detail: 'link-modal' }));
             }
@@ -418,6 +436,7 @@
                 event.preventDefault();
 
                 const formData = new FormData(event.target);
+                const label = formData.get('label');
                 const url = formData.get('url');
                 const method = formData.get('_method');
                 const linkId = formData.get('link_id');
@@ -430,7 +449,7 @@
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         'Accept': 'application/json',
                     },
-                    body: JSON.stringify({ url }),
+                    body: JSON.stringify({ label, url }),
                 };
 
                 if (method === 'POST') {
@@ -449,9 +468,15 @@
                         closeModal();
                         window.location.reload();
                     } else {
-                        if (data.errors && data.errors.url) {
-                            document.getElementById('url-error').textContent = data.errors.url[0];
-                            document.getElementById('url-error').classList.remove('hidden');
+                        if (data.errors) {
+                            if (data.errors.label) {
+                                document.getElementById('label-error').textContent = data.errors.label[0];
+                                document.getElementById('label-error').classList.remove('hidden');
+                            }
+                            if (data.errors.url) {
+                                document.getElementById('url-error').textContent = data.errors.url[0];
+                                document.getElementById('url-error').classList.remove('hidden');
+                            }
                         } else {
                             showNotification(data.message || 'An error occurred', 'error');
                         }
