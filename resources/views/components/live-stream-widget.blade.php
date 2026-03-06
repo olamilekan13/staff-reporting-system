@@ -65,7 +65,7 @@
                   class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500 text-white animate-pulse">
                 &#9679; LIVE
             </span>
-            <span x-show="!isLive && !loading" class="text-xs text-gray-400">Recent Videos</span>
+            <span x-show="!loading" class="text-xs text-gray-400">Recent Videos</span>
         </div>
     </div>
 
@@ -102,8 +102,11 @@
         </div>
     </div>
 
-    {{-- Recent videos (shown when offline) --}}
-    <div x-show="!isLive && !loading">
+    {{-- Divider between live player and video list --}}
+    <div x-show="isLive && !loading" class="border-t border-gray-100"></div>
+
+    {{-- Recent videos (always shown) --}}
+    <div x-show="!loading">
         @if($recentVideos->isEmpty())
             <div class="p-6 text-center text-gray-400 text-sm">
                 <p>No recent videos yet</p>
